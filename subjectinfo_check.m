@@ -101,7 +101,8 @@ elseif whattodo == 2 && survey      % is it right? 'survey' include task part.
         start_line(1) = numel(temp.dat(1,:)); % the number of saved seed word
         for i = 1:40
             if ~isempty(survey.dat{i,start_line(1)})
-                target_i = i; end   % the final number of saved target word           
+                target_i = i; 
+            end   % the final number of saved target word           
         end
         start_line(2) = target_i;
                     

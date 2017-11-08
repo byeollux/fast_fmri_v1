@@ -19,7 +19,7 @@ fast_fmri_task_main(ts,'practice');
 fast_fmri_word_generation(seeds_rand(2), 'biopac', 'eyelink');
 fast_fmri_task_main(response, 'biopac', 'eyelink');
 
-
 %% Whole words list & Survey
 words = fast_fmri_wholewords;
+fast_fmri_survey(words,'practice'); % practice
 fast_fmri_survey(words);

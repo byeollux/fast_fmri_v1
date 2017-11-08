@@ -111,6 +111,9 @@ if ~practice_mode % if not practice mode, save the data
 %     survey.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
     survey.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
     survey.exp_starttime = datestr(clock, 0); % date-time: timestamp
+    survey.dat_descript = {'nth of cell:Questions'; '1:Valence'; '2:Self-relevance'; '3:Time'; '4:Vividness'; '5:SafetyThreat'; '6:Bodymap'};
+    survey.dat_body_xy = [body_x body_y];
+    survey.dat = cell(size(words,1)-1, size(words,2));
     
     % initial save of trial sequence and data
     save(survey.surveyfile, 'words', 'survey');
@@ -241,13 +244,17 @@ end
         Screen('CloseAll');
     end
         
+    
     %% Main function: show 2 words
     for seeds_i = start_line(1):numel(words(1,:)) % loop through the seed words
         % Set restart point in case of overwrite.
         % Restart target word from 'start_line(2)'
         % just for stopped seed words.
         if numel(start_line) == 2 && seeds_i == start_line(1)
-            start_target = start_line(2); else start_target = 1; end
+            start_target = start_line(2); 
+        else
+            start_target = 1;
+        end
         % random rocation of 5 questions
 %         z = repmat([1 2 3 4 5 6], 40, 1);
 %             for i = 1:size(z,1)
@@ -329,7 +336,8 @@ end
                 % save 5 questions data every trial (one word pair)
                 save(survey.surveyfile, 'survey', '-append');
             end
-            WaitSecs(.3)
+            
+            WaitSecs(.3);
             %% SECOND question: body map
     
             SetMouse(W*8.5/10, H/2); % set mouse at the center of the body
@@ -338,7 +346,7 @@ end
             survey.dat{target_i, seeds_i}{6}.trajectory = [];
             survey.dat{target_i, seeds_i}{6}.time = [];
             survey.dat{target_i, seeds_i}{6}.rating_red = [];
-            survey.dat{target_i, seeds_i}{6}.rating_blue = [];  
+            survey.dat{target_i, seeds_i}{6}.rating_blue = [];   
             
             starttime = GetSecs; % bodymap start time
 
@@ -368,6 +376,7 @@ end
                 
                 % Get trajectory
                 rec_i = rec_i+1; % the number of recordings
+                
                 survey.dat{target_i, seeds_i}{6}.trajectory(rec_i,:) = [x y color_code button(1)];
                 survey.dat{target_i, seeds_i}{6}.time(rec_i,1) = GetSecs - starttime;
                 

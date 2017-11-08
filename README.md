@@ -1,2 +1,3 @@
-# fast_v2
-Code for FAST experiment (v2)
+# FAST FMRI TASK
+
+FAST task for fmri study

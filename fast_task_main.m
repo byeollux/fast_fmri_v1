@@ -41,6 +41,9 @@ function out = fast_task_main(seeds, varargin)
 %   **'savewav':**
 %        You can choose to save or not to save wav files.
 %
+%   **'fmri':**
+%        Run this experiment in the MRI
+%
 %
 % :Output:
 %
@@ -59,8 +62,13 @@ function out = fast_task_main(seeds, varargin)
 %    out = fast_task_main(seeds, 'practice'); % practice mode (only 5 beeps)
 %
 % ..
-%    Copyright (C) 2017  Wani Woo (Cocoan lab)
+%    Copyright (C) 2017 COCOAN lab
 % ..
+%
+%    If you have any questions, please email to: 
+%
+%          Byeol Kim (roadndream@naver.com) or
+%          Wani Woo (waniwoo@skku.edu)
 
 %% default setting
 testmode = false;
@@ -73,6 +81,7 @@ response_repeat = 40;
 start_line = 1;
 out = [];
 psychtoolboxdir = '/Users/admin/Dropbox/W_FAS_task/Psychtoolbox';
+dofmri = false;
 
 %% parsing varargin
 for i = 1:length(varargin)
@@ -85,6 +94,9 @@ for i = 1:length(varargin)
                 USE_EYELINK = true;
             case {'biopac'}
                 USE_BIOPAC = true;
+                channel_n = 1;
+                biopac_channel = 0;
+                ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
             case {'test', 'testmode'}
                 testmode = true;
             case {'savedir'}
@@ -95,6 +107,8 @@ for i = 1:length(varargin)
                 psychtoolboxdir = varargin{i+1};
             case {'savewav'}
                 savewav = true;
+            case {'fmri', 'dofmri'}
+                dofmri = true;
         end
     end
 end
@@ -135,7 +149,8 @@ if ~practice_mode % if not practice mode, save the data
     if exist(fname, 'file'), load(fname, 'out'); end
     
     % add some task information
-    out.version = 'FAST_v1_05-19-2017';
+    out.version = 'FAST_v2_10-12-2017';
+    out.github = 'https://github.com/cocoanlab/fast_v2';
     out.subject = SID;
     out.datafile = fname;
     out.starttime = datestr(clock, 0); % date-time
@@ -144,15 +159,6 @@ if ~practice_mode % if not practice mode, save the data
     save(out.datafile, 'out');
     
 end
-
-%% SETUP: BIOPAC
-
-% need to be revised when the biopac is here.
-if USE_BIOPAC
-    trigger_biopac = biopac_setting(io32dir);
-    BIOPAC_PULSE_WIDTH = 1;
-end
-
 
 %% SETUP: Eyelink
 
@@ -167,7 +173,7 @@ if USE_EYELINK
     end
     Eyelink('Command', 'set_idle_mode');
     WaitSecs(0.05);
-    %         Eyelink('StartRecording', 1, 1, 1, 1);
+    % Eyelink('StartRecording', 1, 1, 1, 1);
     Eyelink('StartRecording');
     
     % eye timestamp
@@ -223,9 +229,12 @@ try
         % Showing seed word, beeping, recording
         for response_n = 1:response_repeat
             
-            % Sound recording: Initialize
-            InitializePsychSound;
-            pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
+            if seeds_n == 1 && response_n == 1
+                % Sound recording: Initialize
+                InitializePsychSound;
+                pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
+            end
+            
             % Sound recording: Preallocate an internal audio recording  buffer with a capacity of 10 seconds
             PsychPortAudio('GetAudioData', pahandle, 10);
             % start recording
@@ -235,14 +244,21 @@ try
             if response_n == 1
                 
                 % start timestamp
-                out.starttime_getsecs{seeds_n} = GetSecs; 
+                if USE_BIOPAC, BIOPAC_trigger(ljHandle, biopac_channel, 'on'); end 
+                out.starttime_getsecs{seeds_n} = GetSecs;
                 
                 Screen('FillRect', theWindow, bgcolor, window_rect);
                 Screen('TextSize', theWindow, fontsize*1.2); % emphasize
                 DrawFormattedText(theWindow, double(seeds{seeds_n}),'center', textH, orange);
                 Screen('Flip', theWindow);
                 Screen('TextSize', theWindow, fontsize);
-                WaitSecs(2.5);
+                
+                while true
+                    if GetSecs - out.starttime_getsecs{seeds_n} >= 2.5 % Modify it
+                        if USE_BIOPAC, BIOPAC_trigger(ljHandle, biopac_channel, 'off'); end 
+                        break
+                    end
+                end
             end
             
             Screen('FillRect', theWindow, bgcolor, window_rect);
@@ -257,13 +273,12 @@ try
             Screen('FillRect', theWindow, bgcolor, window_rect);
             DrawFormattedText(theWindow, '+', 'center', textH, white);
             Screen('Flip', theWindow);
-            WaitSecs(1);
+            waitsec_fromstarttime(out.beeptime_from_start{seeds_n}(response_n,1), 1)
             
             % blank
             Screen('FillRect', theWindow, bgcolor, window_rect);
             Screen('Flip', theWindow);
-            
-            WaitSecs(1.5);
+            waitsec_fromstarttime(out.beeptime_from_start{seeds_n}(response_n,1), 2.5)
             
             % stop recording
             PsychPortAudio('Stop', pahandle);
@@ -312,7 +327,9 @@ try
 catch err
     % ERROR 
     disp(err);
-    disp(err.stack(end));
+    for i = 1:numel(err.stack)
+        disp(err.stack(i));
+    end
     abort_experiment('error'); 
 end
 

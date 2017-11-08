@@ -21,5 +21,5 @@ fast_fmri_task_main(response, 'biopac', 'eyelink');
 
 %% Whole words list & Survey
 words = fast_fmri_wholewords;
-fast_fmri_survey(words,'practice');
+fast_fmri_survey(words,'practice'); % practice
 fast_fmri_survey(words);

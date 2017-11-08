@@ -1,2 +1,3 @@
-# fast_fmri_v1
+# FAST FMRI TASK
+
 FAST task for fmri study

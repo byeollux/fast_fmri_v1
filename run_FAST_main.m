@@ -2,7 +2,7 @@
 % seeds = {'생각', '따스함', '아픔', '아빠', '여행', '한숨', '건물'};
 
 seeds = {'생각'};
-fast_task_main(seeds,'repeat',2,'test');
+fast_task_main(seeds,'repeat',3,'test');
 
 %% transcription
 transcribe_responses;

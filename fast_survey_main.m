@@ -1,6 +1,6 @@
 function data = fast_survey_main(varargin)
 
-% Run a survey for the Free Association Semantic Task without scanning.
+% Run a survey for the Free ASsociation Task. 
 %
 % :Usage:
 % ::
@@ -53,21 +53,17 @@ function data = fast_survey_main(varargin)
 % ..
 %    Copyright (C) 2017  Wani Woo (Cocoan lab)
 % ..
-%% default setting
+
 response = '';
 testmode = false;
-practice_mode = false;
 savedir = fullfile(pwd, 'data');
-psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
-scriptdir = '/Users/byeoletoile/CloudStation/Project/Experiment/scripts/fast_fmri 2'
+psychtoolboxdir = '/Users/clinpsywoo/Documents/MATLAB/Psychtoolbox';
+scriptdir = '/Users/clinpsywoo/Dropbox/W_FAST/script';
 
-%% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
             % functional commands
-            case {'practice'}
-                practice_mode = true;
             case {'test', 'testmode'}
                 testmode = true;
             case {'savedir'}
@@ -82,7 +78,7 @@ for i = 1:length(varargin)
     end
 end
 
-% cd(scriptdir);
+cd(scriptdir);
 
 %% SETUP: global
 global theWindow W H; % window property
@@ -99,9 +95,6 @@ if testmode
     window_rect = [1 1 1280 800]; % in the test mode, use a little smaller screen
 else
     window_rect = get(0, 'MonitorPositions'); % full screen
-    if size(window_rect,1)>1   % for Byeol's desk, when there are two moniter
-        window_rect = window_rect(1,:);
-    end
 end
 
 W = window_rect(3); %width of screen
@@ -142,67 +135,43 @@ bodymap(:, [1:10 1271:1280]) = []; % make the picture smaller
 
 %% SETUP: DATA and Subject INFO
 
-dat_file = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-save_file = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
+[fname, start_line, SID] = subjectinfo_check(savedir, 'survey'); % subfunction
+if exist(fname, 'file'), load(fname, 'data'); end
 
-load(dat_file); 
-load(save_file);
+if isempty(response)
+    dat_file= fullfile(savedir, ['taskdata_s' SID '.mat']);
+    load(dat_file); % load data
+    response = out.response;
+end
 
-if ~practice_mode % if not practice mode, save the data
-    
-    [fname, start_line, SID, SessID] = subjectinfo_check(savedir, 'survey'); % subfunction
-    
-    if exist(fname, 'file'), load(fname, 'data'); end
-    
-    if isempty(response)   % response가 없으면 데이터에서 받아오기 response란 41개의 단어들
-        dat_file= fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-        load(dat_file); % load data
-        response = ts; % 이렇게만 해도 될까? 아님 아예 response를 지우고 ts로 쓸까
-    end
-    
-    % add some task information
-    survey.version = 'FAST_fmri_task_v1_11-05-2017';
-    survey.github = 'https://github.com/cocoanlab/fast_fmri';
-    survey.subject = SID;
-    survey.session = SessID;
-    survey.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-    survey.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
-    survey.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-    survey.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    survey.exp_starttime = datestr(clock, 0); % date-time: timestamp
-    
-    
-%     % save data using the canlab_dataset object
-%     data.version = 'FAST_survey_v1_05-19-2017';
-%     data.subject = SID;
-%     data.datafile = fname;
-%     data.starttime = datestr(clock, 0); % date-time
-%     data.starttime_getsecs = GetSecs; % in the same format of timestamps for each trial
-%     
-%     % initial save of trial sequence    다시 보기 response 와 data의 관계를 생각해
-%     save(data.datafile, 'response', 'data'); %원래 있던 거 
-    
-    
-    % initial save of trial sequence    다시 보기 response 와 data의 관계를 생각해
-    save(survey.surveyfile, 'response','survey'); %이것으로 추정 
+% save data using the canlab_dataset object
+data.version = 'FAST_survey_v1_05-19-2017';
+data.subject = SID;
+data.datafile = fname;
+data.starttime = datestr(clock, 0); % date-time
+data.starttime_getsecs = GetSecs; % in the same format of timestamps for each trial
 
-end 
+% initial save of trial sequence
+save(data.datafile, 'response', 'data');
 
-%% Survey start: =========================================================
 
-% try   % 왜 try catch 를 없앴을까
-    %% START: Screen
+%% Survey start
+
+% try
+    % START: Screen
+    % whichScreen = max(Screen('Screens'));
 	theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
     Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
-    Screen('TextFont', theWindow, font); 
-    Screen('TextSize', theWindow, fontsize);
     HideCursor;
+    Screen('TextFont', theWindow, font); % setting font
+    Screen('TextSize', theWindow, fontsize);
     
-    %% PROMPT SETUP:    
+    %% Prompts
+    
     ready_prompt{1}{1} = double('다음에 주어지는 질문에 솔직하게 대답해주세요.');
     ready_prompt{1}{2} = double('앞 단어와 연결되어 있는 맥락을 고려해서 대답해주시면 됩니다.');
     ready_prompt{1}{3} = double('준비되셨으면 스페이스바를 눌러주세요.');
-
+    
     question_prompt{1}{1} = double('가로축: 단어에서 느껴지는 감정 (부정-긍정)');
     question_prompt{1}{2} = double('세로축: 나와의 관련성 (관련없음-관련많음)');
     question_prompt{2}{1} = double('이 단어는 시간적으로 과거-현재-미래의 축에서 어디쯤 위치할까요?');
@@ -212,14 +181,14 @@ end
     run_end_prompt = double('잘하셨습니다. 다음 단어 세트를 기다려주세요.');
     exp_end_prompt = double('설문을 마치셨습니다. 감사합니다!');
     
-    % Calcurate the W of two generated words
-    for i = 1:numel(response) % the number of seed words
-        for j = 1:numel(response{i}) % the number of generated words from a seed word
+    % W and H for seed words
+    for i = 1:numel(response)
+        for j = 1:numel(response{i})
             response_W{i}{j} = Screen(theWindow, 'DrawText', double(response{i}{j}), 0, 0);
         end
     end
     
-    %% Main function: show 2 words
+    %% Main function: show 2-3 response words
     for seeds_i = start_line(1):numel(response) % loop through the seed words
         
         % Get ready message: waiting for a space bar
@@ -238,24 +207,22 @@ end
         end
         
         for target_i = 1:numel(response{seeds_i}) % loop through the response words
-             
+            
             %% FIRST question: valence, self-relevance
             rec_i = 0;
-            SetMouse((rb+lb)/2, bb); % set mouse at the center
-            
             data.dat{seeds_i}{target_i}.val_self_trajectory = [];
             data.dat{seeds_i}{target_i}.val_self_timing = [];
             
+            SetMouse((rb+lb)/2, bb); % set mouse at the center
             start_t = GetSecs;
-            data.dat{seeds_i}{target_i}.start_time = start_t; % ... start timestamp
+            data.dat{seeds_i}{target_i}.start_time = start_t;
             
-           
             while(1)
                 % draw scale:
                 draw_scale_170519('valance_selfrelevance');
                 
                 % display target word and previous words
-                display_target_word(seeds_i, target_i, response); % subfunct
+                display_target_word(seeds_i, target_i, response);
                 
                 % instruction:
                 Screen('TextSize', theWindow, 23);
@@ -310,8 +277,7 @@ end
             
             data.dat{seeds_i}{target_i}.time_trajectory = [];
             data.dat{seeds_i}{target_i}.time_timing = [];
-            start_t = GetSecs;    
-
+            start_t = GetSecs;
 
             while(1)
                 % draw scale:
@@ -371,15 +337,9 @@ end
             
             start_t = GetSecs;
             
-            % default            
-            z = randperm(2)
-            if z(1)==1
-                color = red;
-                color_code = 1;
-            else 
-                color = blue;
-                color_code = 2;
-            end
+            % default
+            color = red;
+            color_code = 1;
             
             while(1)
                 % draw scale:
@@ -415,7 +375,7 @@ end
                 data.dat{seeds_i}{target_i}.body_timing(rec_i,1) = GetSecs - start_t;
                 
                 % current location
-                Screen('DrawDots', theWindow, [x;y], 5, color, [0 0], 1);
+                Screen('DrawDots', theWindow, [x;y], 8, color, [0 0], 1);
                 
                 % color the previous clicked regions
                 if ~isempty(data.dat{seeds_i}{target_i}.body_rating_red)
@@ -445,24 +405,15 @@ end
             
         end
         
-        %% Run (1 seed word) End
+        %% Run End
         if seeds_i < numel(response)
-            save(fname, 'survey')
-            while (1)
-                [~,~,keyCode] = KbCheck;
-                if keyCode(KbName('space'))==1
-                    break;
-                end
-                
-                
-                Screen(theWindow, 'FillRect', bgcolor, window_rect);
-                DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
-                Screen('Flip', theWindow);
-            end
-         end
+            Screen(theWindow, 'FillRect', bgcolor, window_rect);
+            DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
+            Screen('Flip', theWindow);
+        end
         
         % save data
-%         save(fname, 'data')
+        save(fname, 'data')
         WaitSecs(1.0);
         
     end
@@ -523,7 +474,7 @@ function display_target_word(seeds_i, target_i, response)
 global orange theWindow response_W W;
 
 interval = 50;
-y_loc = 80;
+y_loc = 140;
 
 % ==== DISPLAY 2-3 RESPONSE WORDS ====
 

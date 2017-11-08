@@ -41,9 +41,6 @@ function out = fast_task_main(seeds, varargin)
 %   **'savewav':**
 %        You can choose to save or not to save wav files.
 %
-%   **'fmri':**
-%        Run this experiment in the MRI
-%
 %
 % :Output:
 %
@@ -62,13 +59,8 @@ function out = fast_task_main(seeds, varargin)
 %    out = fast_task_main(seeds, 'practice'); % practice mode (only 5 beeps)
 %
 % ..
-%    Copyright (C) 2017 COCOAN lab
+%    Copyright (C) 2017  Wani Woo (Cocoan lab)
 % ..
-%
-%    If you have any questions, please email to: 
-%
-%          Byeol Kim (roadndream@naver.com) or
-%          Wani Woo (waniwoo@skku.edu)
 
 %% default setting
 testmode = false;
@@ -81,7 +73,6 @@ response_repeat = 40;
 start_line = 1;
 out = [];
 psychtoolboxdir = '/Users/admin/Dropbox/W_FAS_task/Psychtoolbox';
-dofmri = false;
 
 %% parsing varargin
 for i = 1:length(varargin)
@@ -94,9 +85,6 @@ for i = 1:length(varargin)
                 USE_EYELINK = true;
             case {'biopac'}
                 USE_BIOPAC = true;
-                channel_n = 1;
-                biopac_channel = 0;
-                ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
             case {'test', 'testmode'}
                 testmode = true;
             case {'savedir'}
@@ -107,10 +95,6 @@ for i = 1:length(varargin)
                 psychtoolboxdir = varargin{i+1};
             case {'savewav'}
                 savewav = true;
-            case {'fmri', 'dofmri'}
-                dofmri = true;
-            case {'seed_n'}
-                seed_n = varargin{i+1};
         end
     end
 end
@@ -151,8 +135,7 @@ if ~practice_mode % if not practice mode, save the data
     if exist(fname, 'file'), load(fname, 'out'); end
     
     % add some task information
-    out.version = 'FAST_v2_10-12-2017';
-    out.github = 'https://github.com/cocoanlab/fast_fmri';
+    out.version = 'FAST_v1_05-19-2017';
     out.subject = SID;
     out.datafile = fname;
     out.starttime = datestr(clock, 0); % date-time
@@ -162,11 +145,21 @@ if ~practice_mode % if not practice mode, save the data
     
 end
 
+%% SETUP: BIOPAC
+
+% need to be revised when the biopac is here.
+if USE_BIOPAC
+    trigger_biopac = biopac_setting(io32dir);
+    BIOPAC_PULSE_WIDTH = 1;
+end
+
+
 %% SETUP: Eyelink
 
 % need to be revised when the eyelink is here.
 if USE_EYELINK
-    eyelink_main(data, 'Init');
+    
+    eyelink_mpa2(data, 'Init');
     
     status = Eyelink('Initialize');
     if status
@@ -174,12 +167,20 @@ if USE_EYELINK
     end
     Eyelink('Command', 'set_idle_mode');
     WaitSecs(0.05);
+    %         Eyelink('StartRecording', 1, 1, 1, 1);
+    Eyelink('StartRecording');
+    
+    % eye timestamp
+    out.eyetracker_starttime = GetSecs;
+    
+    WaitSecs(0.1);
 end
 
 %% TAST START: ===========================================================
 
+% 1. Prompt: Ready?
+
 try
-    
     % START: Screen
     % whichScreen = max(Screen('Screens'));
 	theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
@@ -189,91 +190,30 @@ try
     Screen('TextSize', theWindow, fontsize);
     HideCursor;
     
-    %% PROMPT SETUP:
-    if dofmri
-        ready_prompt = double('피험자가 준비되었으면, 이미징을 시작합니다 (s).');
-    else
-        ready_prompt = double('준비되셨으면 스페이스바를 눌러주세요.');
-    end
-    exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
+    %% prompts
+    ready_prompt = double('준비되셨으면 스페이스바를 눌러주세요.');
     run_end_prompt = double('잘하셨습니다. 다음 단어 세트를 기다려주세요.');
     exp_end_prompt = double('실험을 마치셨습니다. 감사합니다!');
-    % -----
     
     if practice_mode
         response_repeat = 5;
     end
     
-    % DEFINE SEED_LOOP
-    if dofmri
-        if ~exist('seed_n', 'var'), seed_loop = input('seed_n? '); 
-        else, seed_loop = seed_n; end
-    else
-        seed_loop = start_line:numel(seeds); % loop for seed words
-    end
-    
-    % DISPLAY EXP START MESSAGE
-    while (1)
-        [~,~,keyCode] = KbCheck;
-        if keyCode(KbName('space'))==1
-            break
-        elseif keyCode(KbName('q'))==1
-            abort_man;
-        end
-        Screen(theWindow,'FillRect',bgcolor, window_rect);
-        DrawFormattedText(theWindow, exp_start_prompt, 'center', 'center', white, [], [], [], 1.5);
-        Screen('Flip', theWindow);
-    end
-    
-    
     %% MAIN PART of the experiment
-    for seeds_n = seed_loop
+    for seeds_n = start_line:numel(seeds) % loop for seed words
         
-        % show ready_prompt
+        % get ready
         while (1)
             [~,~,keyCode] = KbCheck;
-            
-            if dofmri
-                if keyCode(KbName('s'))==1
-                    break
-                elseif keyCode(KbName('q'))==1
-                    abort_experiment('manual');
-                end
-            else
-                if keyCode(KbName('space'))==1
-                    break
-                elseif keyCode(KbName('q'))==1
-                    abort_experiment('manual');
-                end
+            if keyCode(KbName('space'))==1
+                break
+            elseif keyCode(KbName('q'))==1
+                abort_experiment('manual');
             end
-            
             Screen(theWindow, 'FillRect', bgcolor, window_rect);
             DrawFormattedText(theWindow, ready_prompt,'center', textH, white);
             Screen('Flip', theWindow);
         end
-        
-        % FOR DISDAQ 10 SECONDS
-        if dofmri
-            % gap between 's' key push and the first stimuli (disdaqs: data.disdaq_sec)
-            % 5 seconds: "시작합니다..."
-            Screen(theWindow, 'FillRect', bgcolor, window_rect);
-            DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2);
-            Screen('Flip', theWindow);
-            out.dat{run_i}{tr_i}.runscan_starttime = GetSecs;
-            WaitSecs(4);
-            
-            % 5 seconds: Blank
-            Screen(theWindow,'FillRect',bgcolor, window_rect);
-            Screen('Flip', theWindow);
-            WaitSecs(4); % ADJUST THIS
-        end
-        
-        if USE_EYELINK
-            Eyelink('StartRecording');
-            out.eyetracker_starttime = GetSecs; % eyelink timestamp
-        end
-    
-    WaitSecs(0.1);
         
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
         DrawFormattedText(theWindow, '+','center', textH, white);
@@ -283,12 +223,9 @@ try
         % Showing seed word, beeping, recording
         for response_n = 1:response_repeat
             
-            if seeds_n == 1 && response_n == 1
-                % Sound recording: Initialize
-                InitializePsychSound;
-                pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
-            end
-            
+            % Sound recording: Initialize
+            InitializePsychSound;
+            pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
             % Sound recording: Preallocate an internal audio recording  buffer with a capacity of 10 seconds
             PsychPortAudio('GetAudioData', pahandle, 10);
             % start recording
@@ -298,21 +235,14 @@ try
             if response_n == 1
                 
                 % start timestamp
-                if USE_BIOPAC, BIOPAC_trigger(ljHandle, biopac_channel, 'on'); end 
-                out.starttime_getsecs{seeds_n} = GetSecs;
+                out.starttime_getsecs{seeds_n} = GetSecs; 
                 
                 Screen('FillRect', theWindow, bgcolor, window_rect);
                 Screen('TextSize', theWindow, fontsize*1.2); % emphasize
                 DrawFormattedText(theWindow, double(seeds{seeds_n}),'center', textH, orange);
                 Screen('Flip', theWindow);
                 Screen('TextSize', theWindow, fontsize);
-                
-                while true
-                    if GetSecs - out.starttime_getsecs{seeds_n} >= 2.5 % Modify it
-                        if USE_BIOPAC, BIOPAC_trigger(ljHandle, biopac_channel, 'off'); end 
-                        break
-                    end
-                end
+                WaitSecs(2.5);
             end
             
             Screen('FillRect', theWindow, bgcolor, window_rect);
@@ -327,12 +257,13 @@ try
             Screen('FillRect', theWindow, bgcolor, window_rect);
             DrawFormattedText(theWindow, '+', 'center', textH, white);
             Screen('Flip', theWindow);
-            waitsec_fromstarttime(out.beeptime_from_start{seeds_n}(response_n,1), 1)
+            WaitSecs(1);
             
             % blank
             Screen('FillRect', theWindow, bgcolor, window_rect);
             Screen('Flip', theWindow);
-            waitsec_fromstarttime(out.beeptime_from_start{seeds_n}(response_n,1), 2.5)
+            
+            WaitSecs(1.5);
             
             % stop recording
             PsychPortAudio('Stop', pahandle);
@@ -381,9 +312,7 @@ try
 catch err
     % ERROR 
     disp(err);
-    for i = 1:numel(err.stack)
-        disp(err.stack(i));
-    end
+    disp(err.stack(end));
     abort_experiment('error'); 
 end
 
@@ -392,52 +321,6 @@ end
 
 
 %% == SUBFUNCTIONS ==============================================
-
-function display_runmessage(run_i, run_num, dofmri)
-
-% MESSAGE FOR EACH RUN
-
-% HERE: YOU CAN ADD MESSAGES FOR EACH RUN USING RUN_NUM and RUN_I
-
-global theWindow white bgcolor window_rect; % rating scale
-
-if dofmri
-    if run_i <= run_num % you can customize the run start message using run_num and run_i
-        Run_start_text = double('피험자가 준비되었으면, 이미징을 시작합니다 (s).');
-    end
-else
-    if run_i <= run_num
-        Run_start_text = double('피험자가 준비되었으면, r을 눌러 주세요.');
-    end
-end
-
-% display
-Screen(theWindow,'FillRect',bgcolor, window_rect);
-DrawFormattedText(theWindow, Run_start_text, 'center', 'center', white, [], [], [], 1.5);
-Screen('Flip', theWindow);
-
-end
-
-function display_runending_message(run_i, run_num)
-
-global theWindow window_rect white bgcolor; % color
-
-% MESSAGE FOR EACH RUN
-
-% HERE: YOU CAN ADD MESSAGES FOR EACH RUN
-
-if run_i < run_num
-    Run_end_text = double([num2str(run_i) '번 세션을 마쳤습니다.\n피험자가 다음 세션을 진행할 준비가 되면, 스페이스바를 눌러주세요.']);
-else
-    Run_end_text = double('실험의 이번 파트를 마쳤습니다.\n프로그램에서 나가기 위해서는, 스페이스바를 눌러주세요.');
-end
-    
-Screen(theWindow,'FillRect',bgcolor, window_rect);
-DrawFormattedText(theWindow, Run_end_text, 'center', 'center', white, [], [], [], 1.5);
-Screen('Flip', theWindow);
-
-end
-
 
 function abort_experiment(varargin)
 

@@ -1,4 +1,4 @@
-function [fname, start_line, SID, SessID] = subjectinfo_check(savedir, varargin)
+function [fname, start_line, SID] = subjectinfo_check(savedir, varargin)
 
 % Get subject information, and check if the data file exists?
 %
@@ -14,11 +14,8 @@ function [fname, start_line, SID, SessID] = subjectinfo_check(savedir, varargin)
 %
 % :Optional Inputs: 
 %
-%   **'word':** 
-%       Check the data file for fast_fmri_word_generation.m
-%
 %   **'task':** 
-%       Check the data file for fast_fmri_task_main.m
+%       Check the data file for fast_task_main.m
 %
 %   **'survey':**
 %       Check the data file for fast_survey_main.m
@@ -30,14 +27,11 @@ function [fname, start_line, SID, SessID] = subjectinfo_check(savedir, varargin)
 %% SETUP: varargin
 task = false;
 survey = false;
-word = false;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
             % functional commands
-            case {'word'}
-                word = true;
             case {'task'}
                 task = true;
             case {'survey'}
@@ -49,25 +43,22 @@ end
 %% Get subject ID    
 fprintf('\n');
 SID = input('Subject ID (number)? ', 's');
-if ~survey
-    SessID = input('Session number? ', 's'); end
     
 %% Check if the data file exists
-if word
-    fname = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-elseif task
-    fname = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
+if task
+    fname = fullfile(savedir, ['taskdata_s' SID '.mat']);
 elseif survey
-%     fname = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    fname = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
+    fname = fullfile(savedir, ['surveydata_s' SID '.mat']);
 else
     error('Unknown input');
 end
 
 %% What to do if the file exists?
 if ~exist(savedir, 'dir')
+    
     mkdir(savedir);
     whattodo = 1;
+
 else
     
     if exist(fname, 'file')
@@ -82,11 +73,7 @@ end
     
 %% If we want to start the task from where we left off
 
-if (whattodo == 2 && task) || (whattodo == 2 && word)
-    
-    error('You need to start from the beginning. Please check the file, and choose 1:Save new file. next time');
-    
-elseif whattodo == 2 && survey      % is it right? 'survey' include task part. 
+if whattodo == 2
     
     temp = load(fname);
     temp_f = fields(temp);
@@ -98,18 +85,13 @@ elseif whattodo == 2 && survey      % is it right? 'survey' include task part.
         
     elseif survey
         
-        start_line(1) = numel(temp.dat(1,:)); % the number of saved seed word
-        for i = 1:40
-            if ~isempty(survey.dat{i,start_line(1)})
-                target_i = i; 
-            end   % the final number of saved target word           
-        end
-        start_line(2) = target_i;
-                    
+        start_line(1) = numel(temp.dat);
+        start_line(2) = numel(temp.dat{start_line(2)});
+        
     end
      
 else
-    start_line = 1;  
+    start_line = 1;
 end
    
 end

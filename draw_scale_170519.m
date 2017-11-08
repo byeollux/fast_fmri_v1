@@ -420,11 +420,6 @@ switch scale
         Screen(theWindow,'DrawText', double('현재'), (lb+rb)/2-anchor_W/2, ycenter-50, 255);
         Screen(theWindow,'DrawText', double('미래'), rb-anchor_W/2, ycenter-50, 255);
         Screen('TextSize', theWindow, fontsize);
-        
-    case 'whole survey'
-        
-        
-        
 end
 
 end     

@@ -1,6 +1,6 @@
 function out = fast_fmri_word_generation(seed, varargin)
 
-% Run a Free ASsociation Task with the fMRI scanning. 
+% Run a word generation step of Free Association Semantic Task with the fMRI scanning. 
 %
 % :Usage:
 % ::
@@ -79,7 +79,7 @@ response_repeat = 40;
 out = [];
 psychtoolboxdir = '/Users/admin/Dropbox/W_FAS_task/Psychtoolbox';
 
-%% parsing varargin
+%% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
@@ -122,12 +122,17 @@ if testmode
     window_rect = [1 1 1280 800]; % in the test mode, use a little smaller screen
 else
     window_rect = get(0, 'MonitorPositions'); % full screen
+    if size(window_rect,1)>1   % for Byeol's desk, when there are two moniter
+        window_rect = window_rect(1,:);
+    end
 end
 
 W = window_rect(3); % width of screen
 H = window_rect(4); % height of screen
 textH = H/2.3;
 
+
+font = 'NanumBarunGothic';
 fontsize = 30;
 
 white = 255;
@@ -143,7 +148,7 @@ if ~practice_mode % if not practice mode, save the data
     if exist(fname, 'file'), load(fname, 'out'); end
     
     % add some task information
-    out.version = 'FAST_fmri_wordgeneration_v1_10-12-2017';
+    out.version = 'FAST_fmri_wordgeneration_v1_11-05-2017';
     out.github = 'https://github.com/cocoanlab/fast_fmri';
     out.subject = SID;
     out.session = SessID;
@@ -153,11 +158,11 @@ if ~practice_mode % if not practice mode, save the data
     out.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
     out.exp_starttime = datestr(clock, 0); % date-time: timestamp
     out.seed = seed; % date-time: timestamp
-    
+    9
     response = cell(41,1); % preallocate the cell structure
     response{1} = out.seed;
     
-    % save the data
+    % initial save the data
     save(out.wordfile, 'out');
     save(out.responsefile, 'response');
     
@@ -181,12 +186,9 @@ end
 %% TAST START: ===========================================================
 
 try
-    
-    % START: Screen
-    % whichScreen = max(Screen('Screens'));
+    %% START: Screen
 	theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
     Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
-    font = 'NanumBarunGothic';
     Screen('TextFont', theWindow, font);
     Screen('TextSize', theWindow, fontsize);
     HideCursor;
@@ -196,7 +198,7 @@ try
     ready_prompt = double('피험자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
     
-    if practice_mode
+    if practice_mode 
         response_repeat = 5;
     end
     
@@ -223,8 +225,7 @@ try
             break
         elseif keyCode(KbName('q'))==1
             abort_experiment('manual');
-        end
-        
+        end    
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
         DrawFormattedText(theWindow, ready_prompt,'center', textH, white);
         Screen('Flip', theWindow);
@@ -284,14 +285,14 @@ try
     % Showing seed word, beeping, recording
     for response_n = 1:response_repeat
         
-        % seed word
+        % seed word for 2.5s
         if response_n == 1
             
             Screen('FillRect', theWindow, bgcolor, window_rect);
             Screen('TextSize', theWindow, fontsize*1.2); % emphasize
             DrawFormattedText(theWindow, double(seed),'center', textH, orange);
             Screen('Flip', theWindow);
-            Screen('TextSize', theWindow, fontsize);
+%             Screen('TextSize', theWindow, fontsize);   %****없어도 되는듯
             waitsec_fromstarttime(out.seedword_starttime, 2.5);
             
         end
@@ -307,13 +308,13 @@ try
         Snd('Play',beep);
         out.beeptime_from_start(response_n,1) = GetSecs-out.seedword_starttime;
         
-        % cross
+        % cross for 1s
         Screen('FillRect', theWindow, bgcolor, window_rect);
         DrawFormattedText(theWindow, '+', 'center', textH, white);
         Screen('Flip', theWindow);
         waitsec_fromstarttime(out.seedword_starttime, time_fromstart(response_n)-1.5)
         
-        % blank
+        % blank for 1.5s
         Screen('FillRect', theWindow, bgcolor, window_rect);
         Screen('Flip', theWindow);
         waitsec_fromstarttime(out.seedword_starttime, time_fromstart(response_n))
@@ -324,16 +325,16 @@ try
     end
     
     %% RUN END MESSAGE
-    Screen(theWindow, 'FillRect', bgcolor, window_rect);
-    DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
-    Screen('Flip', theWindow);
-    
-    % save data
-    if ~practice_mode
-        out.response{1} = seed;
-        save(out.wordfile, 'out');
-    end
-    
+        Screen(theWindow, 'FillRect', bgcolor, window_rect);
+        DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
+        Screen('Flip', theWindow);
+        
+        % if not practice mode, save the data
+        if ~practice_mode
+            out.response{1} = seed;
+            save(out.wordfile, 'out');
+        end
+        
     %% Close the audio device:
     
     PsychPortAudio('Close', pahandle);
@@ -343,7 +344,7 @@ try
         wave_savename = fullfile(wavedir, [wavefname '.wav']);
         audiowrite(wave_savename,cat(2,out.audiodata{:})',44100);
     end
-    
+        
     
 catch err
     % ERROR 

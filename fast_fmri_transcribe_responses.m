@@ -1,6 +1,6 @@
 function fast_fmri_transcribe_responses(varargin)
 
-% This function can be used to transcribe the FAST fmri task responses.
+% This function can be used to transcribe the FAST fmri word generation responses.
 %
 % :Usage:
 % :: 
@@ -56,7 +56,7 @@ for i = 1:length(varargin)
     end
 end
 
-%% LOAD DATA
+%% LOAD DATA and Subject INFO check
 SID = input('Subject ID (number)? ', 's');
 SessID = input('Session number? ', 's');
 
@@ -67,24 +67,26 @@ load(dat_file);
 load(save_file);
 
 %% Response_N
-response_n = 1:numel(out.audiodata);
+response_n = 1:numel(out.audiodata); % out.audiodata = 1x40
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
             % functional commands
+            case {'nosound'}
+                response_n = [1:40];
             case {'response_n'}
                 response_n = varargin{i+1};
                 if size(response_n,1) > size(response_n,2), response_n = response_n'; end
             case {'only_na'}
-                response_n = find(strcmp(response, 'na'));
+                response_n = (find(strcmp(response, 'na'))')-1;  % If the two strings are same, the result is 1. If not, 0.
         end
     end
 end
 
 %% PLAY RESPONSES
 
-for response_i = response_n
+for response_i = response_n   % in case of no-sound, 1:40
 
     str{1} = '==================================================';
     str{2} = sprintf('    %2dth response word   ', response_i);
@@ -108,7 +110,7 @@ for response_i = response_n
     
     response{response_i+1} = input_key;
     
-    save(save_file, 'response');
+    save(save_file, 'response'); % save the data 
 end
 
 end

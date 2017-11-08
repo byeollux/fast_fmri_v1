@@ -421,13 +421,10 @@ switch scale
         Screen(theWindow,'DrawText', double('¹Ì·¡'), rb-anchor_W/2, ycenter-50, 255);
         Screen('TextSize', theWindow, fontsize);
         
-    case 'emotion_words'
-        xcenter = (lb+rb)/2;
-        ycenter = bb;
-        % 14 xy coordiantes of rectangles for words
-        xy = 2; % [14 x 2 matrix]
-        Screen(theWindow, 'FillRect', bgcolor, rectangle_cal(xy)); % make function
-        % drawformattedtext (words) using xy
+    case 'whole survey'
+        
+        
+        
 end
 
 end     

@@ -14,8 +14,11 @@ function [fname, start_line, SID, SessID] = subjectinfo_check(savedir, varargin)
 %
 % :Optional Inputs: 
 %
+%   **'word':** 
+%       Check the data file for fast_fmri_word_generation.m
+%
 %   **'task':** 
-%       Check the data file for fast_task_main.m
+%       Check the data file for fast_fmri_task_main.m
 %
 %   **'survey':**
 %       Check the data file for fast_survey_main.m
@@ -46,7 +49,8 @@ end
 %% Get subject ID    
 fprintf('\n');
 SID = input('Subject ID (number)? ', 's');
-SessID = input('Session number? ', 's');
+if ~survey
+    SessID = input('Session number? ', 's'); end
     
 %% Check if the data file exists
 if word
@@ -54,17 +58,16 @@ if word
 elseif task
     fname = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
 elseif survey
-    fname = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+%     fname = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+    fname = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
 else
     error('Unknown input');
 end
 
 %% What to do if the file exists?
 if ~exist(savedir, 'dir')
-    
     mkdir(savedir);
     whattodo = 1;
-
 else
     
     if exist(fname, 'file')
@@ -83,7 +86,7 @@ if (whattodo == 2 && task) || (whattodo == 2 && word)
     
     error('You need to start from the beginning. Please check the file, and choose 1:Save new file. next time');
     
-elseif whattodo == 2 && survey
+elseif whattodo == 2 && survey      % is it right? 'survey' include task part. 
     
     temp = load(fname);
     temp_f = fields(temp);
@@ -95,13 +98,17 @@ elseif whattodo == 2 && survey
         
     elseif survey
         
-        start_line(1) = numel(temp.dat);
-        start_line(2) = numel(temp.dat{start_line(2)});
-        
+        start_line(1) = numel(temp.dat(1,:)); % the number of saved seed word
+        for i = 1:40
+            if ~isempty(survey.dat{i,start_line(1)})
+                target_i = i; end   % the final number of saved target word           
+        end
+        start_line(2) = target_i;
+                    
     end
      
 else
-    start_line = 1;
+    start_line = 1;  
 end
    
 end

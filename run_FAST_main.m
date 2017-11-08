@@ -9,4 +9,4 @@ transcribe_responses;
 
 %% survey
 
-fast_survey_main('scriptdir', '/Users/byeoletoile/CloudStation/Project/Experiment/scripts/fast_task_preparing');
+fast_survey_main('test');

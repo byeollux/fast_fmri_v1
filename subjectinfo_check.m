@@ -31,6 +31,7 @@ function [fname, start_line, SID, SessID] = subjectinfo_check(savedir, varargin)
 task = false;
 survey = false;
 word = false;
+resting = false;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -42,6 +43,8 @@ for i = 1:length(varargin)
                 task = true;
             case {'survey'}
                 survey = true;
+            case {'resting'}
+                resting = true;
         end
     end
 end
@@ -58,8 +61,9 @@ if word
 elseif task
     fname = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
 elseif survey
-%     fname = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
     fname = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
+elseif resting
+    fname = fullfile(savedir, ['e_surveydata_sub' SID '.mat']);
 else
     error('Unknown input');
 end
@@ -82,7 +86,7 @@ end
     
 %% If we want to start the task from where we left off
 
-if (whattodo == 2 && task) || (whattodo == 2 && word)
+if (whattodo == 2 && task) || (whattodo == 2 && word) || (whattodo == 2 && resting)
     
     error('You need to start from the beginning. Please check the file, and choose 1:Save new file. next time');
     
@@ -93,7 +97,6 @@ elseif whattodo == 2 && survey      % is it right? 'survey' include task part.
     eval(['temp = temp.' temp_f{1} ';']);
     
     if task
-        
         start_line(1) = numel(temp.audiodata);
         
     elseif survey

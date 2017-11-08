@@ -27,7 +27,7 @@ testmode = false;
 practice_mode = false;
 savedir = fullfile(pwd, 'data');
 psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
-scriptdir = '/Users/byeoletoile/CloudStation/Project/Experiment/scripts/fast_fmri 2';
+scriptdir = '/Users/byeoletoile/CloudStation/Project/Experiment/scripts/fast_fmri_v1';
 
 practice_repeat= 4;
 
@@ -103,12 +103,12 @@ if ~practice_mode % if not practice mode, save the data
     if exist(fname, 'file'), load(fname, 'survey'); end
     
     % add some task information
-    survey.version = 'FAST_fmri_task_v1_11-06-2017';
-    survey.github = 'https://github.com/cocoanlab/fast_fmri';
+    survey.version = 'FAST_fmri_task_v1_11-08-2017';
+    survey.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     survey.subject = SID;
-%     survey.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-%     survey.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
-%     survey.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
+    survey.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sessnumber.mat']);
+    survey.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sessnumber.mat']);
+    survey.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sessnumber.mat']);
     survey.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
     survey.exp_starttime = datestr(clock, 0); % date-time: timestamp
     survey.dat_descript = {'nth of cell:Questions'; '1:Valence'; '2:Self-relevance'; '3:Time'; '4:Vividness'; '5:SafetyThreat'; '6:Bodymap'};

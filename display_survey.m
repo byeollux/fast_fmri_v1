@@ -62,7 +62,7 @@ response_W(2) = Screen(theWindow, 'DrawText', double(words{target_i+1,seeds_i}),
 x(1) = W/2 - interval/2 - response_W(1) - response_W(2)/2;
 x(2) = W/2 + interval/2 - response_W(2)/2;
 
-fontsize = [30, 50, 22, 20]; % Word1, W2, title(1,:), title(2~4,:) 
+fontsize = [30, 50, 22, 20]; % Word1, W2, title(1,:), title(2~4,:)
 
 %%
 switch scale 
@@ -91,35 +91,6 @@ switch scale
                 [linexy(1,2*i)-20, linexy(2,2*i-1), linexy(1,2*i)+15, linexy(2,2*i-1)+60]);
         end
         
-%     case 'button' % erase if not use
-%         Screen(theWindow, 'FillRect', bgcolor, window_rect);
-% %         Screen('PutImage', theWindow, bodymap); % put bodymap image on screen
-%         Screen('TextSize', theWindow, 30);
-%         DrawFormattedText(theWindow, double(words{target_i,seeds_i}), x(1), H/7, white, [], [], [], 1.5);      
-%         Screen('TextSize', theWindow, 50);
-%         DrawFormattedText(theWindow, double(words{target_i+1,seeds_i}), x(2), H/7, white, [], [], [], 1.5);
-%         Screen('DrawLines',theWindow, linexy, 3, 255);
-%         for i = 1:numel(title(1,:))
-%             Screen('TextSize', theWindow, 22);
-%             DrawFormattedText(theWindow, double(title{1,i}),'center', 'center', white, [],[],[],[],[],...
-%                 [rec(i,1), rec(i,2)+5, rec(i,1)+recsize(1), rec(i,2)+recsize(2)/2]);
-%             Screen('TextSize', theWindow, 18);
-%             DrawFormattedText(theWindow, double(title{2,i}),'center', 'center', white, [],[],[],[],[],...
-%                 [linexy(1,2*i-1)-15, linexy(2,2*i-1), linexy(1,2*i-1)+20, linexy(2,2*i-1)+60]);
-%             DrawFormattedText(theWindow, double(title{3,i}),'center', 'center', white, [],[],[],[],[],...
-%                 [rec(i,1)+recsize(1)/3, linexy(2,2*i-1), rec(i,1)+recsize(1)*2/3, linexy(2,2*i-1)+60]);
-%             DrawFormattedText(theWindow, double(title{4,i}),'center', 'center', white, [],[],[],[],[],...
-%                 [linexy(1,2*i)-20, linexy(2,2*i-1), linexy(1,2*i)+15, linexy(2,2*i-1)+60]);
-%         end
-% 
-%     case 'body' % erase if not use
-%         Screen(theWindow, 'FillRect', bgcolor, window_rect);
-%         Screen('PutImage', theWindow, bodymap); % put bodymap image on screen
-%         Screen('TextSize', theWindow, 30);
-%         DrawFormattedText(theWindow, double(words{target_i,seeds_i}), x(1), H/7, white, [], [], [], 1.5);      
-%         Screen('TextSize', theWindow, 50);
-%         DrawFormattedText(theWindow, double(words{target_i+1,seeds_i}), x(2), H/7, white, [], [], [], 1.5);
-    
     case 'practice1'
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
         Screen('PutImage', theWindow, bodymap, window_rect); % put bodymap image on screen
@@ -158,6 +129,24 @@ switch scale
         for i = 1:numel(body_prompt)
             DrawFormattedText(theWindow, double(body_prompt{i}), 'center', 200+30*i, white);
         end
+        
+    case 'resting' % erase if not use
+        Screen(theWindow, 'FillRect', bgcolor, window_rect);
+        Screen('DrawLines',theWindow, linexy, 3, 255);
+        for i = 1:numel(title(1,:))
+            Screen('TextSize', theWindow, 22);
+            DrawFormattedText(theWindow, double(title{1,i}),'center', 'center', white, [],[],[],[],[],...
+                [rec(i,1), rec(i,2)+5, rec(i,1)+recsize(1), rec(i,2)+recsize(2)/2]);
+            Screen('TextSize', theWindow, 18);
+            DrawFormattedText(theWindow, double(title{2,i}),'center', 'center', white, [],[],[],[],[],...
+                [linexy(1,2*i-1)-15, linexy(2,2*i-1), linexy(1,2*i-1)+20, linexy(2,2*i-1)+60]);
+            DrawFormattedText(theWindow, double(title{3,i}),'center', 'center', white, [],[],[],[],[],...
+                [rec(i,1)+recsize(1)/3, linexy(2,2*i-1), rec(i,1)+recsize(1)*2/3, linexy(2,2*i-1)+60]);
+            DrawFormattedText(theWindow, double(title{4,i}),'center', 'center', white, [],[],[],[],[],...
+                [linexy(1,2*i)-20, linexy(2,2*i-1), linexy(1,2*i)+15, linexy(2,2*i-1)+60]);
+        end
+            
+
  
 end
 end

@@ -43,22 +43,22 @@ for i = 1:length(varargin)
                     
                     % check the version of the eye tracker & host software
                     % sw_version = 0;
-                    [v, vs]=Eyelink('GetTrackerVersion');    % do I need it?
+%                     [v, vs]=Eyelink('GetTrackerVersion');    % do I need it?
                     % fprintf('Running experiment on a ''%s''tracker.\n', vs );
                     % fprintf('tracker version v=%d\n', v);
                     
                     % open file to record data to
-                    eye = Eyelink('Openfile', edfFile);
-                    
-                    if eye~=0
-                        fprintf('Cannot create EDF file ''%s'' ', edffilename);
-                        Eyelink('Shutdown');
-                        Screen('CloseAll');
-                        commandwindow;
-                        return;
-                    end
-                    
-                    Eyelink('command', 'add_file_preamble_text ''Recorded by EyelinkToolbox demo-experiment''');  %?
+                    Eyelink('Openfile', edfFile);
+%                     
+%                     if eye~=0
+%                         fprintf('Cannot create EDF file ''%s'' ', edffilename);
+%                         Eyelink('Shutdown');
+%                         Screen('CloseAll');
+%                         commandwindow;
+%                         return;
+%                     end
+%                     
+%                     Eyelink('command', 'add_file_preamble_text ''Recorded by EyelinkToolbox demo-experiment''');  %?
                     % [width, height]=Screen('WindowSize', whichScreen); % wani: don't need calibration
                     
                     % STEP 5
@@ -75,21 +75,20 @@ for i = 1:length(varargin)
                     % file-event_filter commands
                     % set link data thtough link_sample_data and link_event_filter
                     Eyelink('command', 'file_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT');
-                    Eyelink('command', 'link_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT');
                     
                     % check the software version
                     % add "HTARGET" to record possible target data for EyeLink Remote
-                    if v>=4
-                        Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,HTARGET,GAZERES,STATUS,INPUT');
-                        Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,HTARGET,STATUS,INPUT');
-                    else
+%                     if v>=4
+%                         Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,HTARGET,GAZERES,STATUS,INPUT');
+%                         Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,HTARGET,STATUS,INPUT');
+%                     else
                         Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,GAZERES,STATUS,INPUT');
                         Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS,INPUT');
-                    end
+%                     end
                     
                     % allow to use the big button on the eyelink gamepad to accept the
                     % calibration/drift correction target
-                    Eyelink('command', 'button_function 5 "accept_target_fixation"');
+%                     Eyelink('command', 'button_function 5 "accept_target_fixation"');
                     
                     % make sure we're still connected.
                     if Eyelink('IsConnected')~=1 && dummymode == 0
@@ -147,19 +146,20 @@ for i = 1:length(varargin)
                 WaitSecs(0.5);
                 Eyelink('StopRecording');
                 Eyelink('CloseFile');
+                Eyelink('ReceiveFile', edfFile, edfFile);
                 % download data file
-                try
-                    fprintf('Receiving data file ''%s''\n', edfFile );
-                    status=Eyelink('ReceiveFile');
-                    if status > 0
-                        fprintf('ReceiveFile status %d\n', status);
-                    end
-                    if 2==exist(edfFile, 'file')
-                        fprintf('Data file ''%s'' can be found in ''%s''\n', edfFile, pwd );
-                    end
-                catch
-                    fprintf('Problem receiving data file ''%s''\n', edfFile );
-                end
+%                 try
+%                     fprintf('Receiving data file ''%s''\n', edfFile );
+%                     status=Eyelink('ReceiveFile');
+%                     if status > 0
+%                         fprintf('ReceiveFile status %d\n', status);
+%                     end
+%                     if 2==exist(edfFile, 'file')
+%                         fprintf('Data file ''%s'' can be found in ''%s''\n', edfFile, pwd );
+%                     end
+%                 catch
+%                     fprintf('Problem receiving data file ''%s''\n', edfFile );
+%                 end
                 % STEP 9
                 % cleanup;
                 % function cleanup

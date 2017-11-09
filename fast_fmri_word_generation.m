@@ -172,7 +172,7 @@ end
 
 % need to be revised when the eyelink is here.
 if USE_EYELINK
-    edf_filename = ['eyelink_sub' SID '_sess' SessID];
+    edf_filename = ['YWG_sub' SID '_sess' SessID];
     eyelink_main(edf_filename, 'Init');
     
     status = Eyelink('Initialize');
@@ -250,6 +250,7 @@ try
     if USE_EYELINK
         Eyelink('StartRecording');
         out.eyetracker_starttime = GetSecs; % eyelink timestamp
+        Eyelink('Message','WG starttime');
     end
         
     if USE_BIOPAC
@@ -292,8 +293,10 @@ try
             Screen('TextSize', theWindow, fontsize*1.2); % emphasize
             DrawFormattedText(theWindow, double(seed),'center', textH, orange);
             Screen('Flip', theWindow);
-%             Screen('TextSize', theWindow, fontsize);   %****없어도 되는듯
             waitsec_fromstarttime(out.seedword_starttime, 2.5);
+            if USE_EYELINK
+                Eyelink('Message','WG SeedWord');
+            end
             
         end
         
@@ -322,6 +325,15 @@ try
         % stop recording
         PsychPortAudio('Stop', pahandle);
         out.audiodata{response_n} = PsychPortAudio('GetAudioData', pahandle);
+        if USE_EYELINK
+            Eyelink('Message','WG Trial end');
+        end
+
+    end
+    if USE_EYELINK
+        Eyelink('Message','WG Run end');
+        eyelink_main(edf_filename, 'Shutdown');
+        
     end
     
     %% RUN END MESSAGE

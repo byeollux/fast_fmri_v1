@@ -1,4 +1,4 @@
-function rest = fast_fmri_word_generation(seed, varargin)
+function rest = fast_fmri_resting(varargin)
 
 % Run a word generation step of Free Association Semantic Task with the fMRI scanning. 
 %
@@ -97,7 +97,7 @@ end
 %% SETUP: global
 global theWindow W H; % window property
 global white red orange bgcolor; % color
-global window_rect; % rating scale
+global fontsize window_rect lb tb recsize rec; % rating scale
 
 %% SETUP: Screen
 
@@ -118,19 +118,34 @@ W = window_rect(3); % width of screen
 H = window_rect(4); % height of screen
 textH = H/2.3;
 
-
 font = 'NanumBarunGothic';
 fontsize = 30;
+
+white = 255;
+red = [189 0 38];
+orange = [255 164 0];
+
+lb=W*11/128;    % 110        when W=1280
+tb=H*18/80;     % 180
+
+recsize=[W*520/1280 H*175/800]; 
+barsizeO=[W*340/1280, W*200/1280, W*340/1280, W*200/1280, W*340/1280, 0;
+    10, 10, 10, 10, 10, 0; 10, 0, 10, 0, 10, 0;
+    10, 10, 10, 10, 10, 0; 1, 2, 3, 4, 5, 0];
+rec=[lb,tb; lb+recsize(1),tb; lb,tb+recsize(2); lb+recsize(1),tb+recsize(2);
+    lb,tb+2*recsize(2); lb+recsize(1),tb+2*recsize(2)]; %6개 사각형의 왼쪽 위 꼭짓점의 좌표
+
 
 %% SETUP: DATA and Subject INFO
    
     [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'resting'); % subfunction
+    
+    if exist(fname, 'file'), load(fname, 'out'); end
       
     % add some task information
     rest.version = 'FAST_fmri_wordgeneration_v1_11-05-2017';
     rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     rest.subject = SID;
-    rest.session = SessID;
     rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
     rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
@@ -145,9 +160,8 @@ fontsize = 30;
 
 %% SETUP: Eyelink
 
-% need to be revised when the eyelink is here.
 if USE_EYELINK
-    edf_filename = ['eyelink_sub' SID '_sess' SessID];
+    edf_filename = ['YRest_sub' SID '_sess' SessID];
     eyelink_main(edf_filename, 'Init');
     
     status = Eyelink('Initialize');
@@ -176,9 +190,8 @@ try
     intro_prompt{4} = double('이제 2분간 쉬는 동안의 뇌 활동을 찍는 과제를 하겠습니다.');
 
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
-    
+    question_prompt = double('방금 쉬는 과제를 하는 동안 자연스럽게 떠올린 생각에 대한 질문입니다.'); 
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
-    
     
     %% TEST RECORDING... and play
     
@@ -211,7 +224,7 @@ try
             end
             Screen('Flip', theWindow);
         end
-        WaitSecs(.3)
+        waitsec_fromstarttime(GetSecs, .3);
            
     %% WAITING FOR INPUT FROM THE SCANNER
     while (1)
@@ -235,76 +248,96 @@ try
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.runscan_starttime, 4);
+    waitsec_fromstarttime(rest.data{SessID}.runscan_starttime, 4);
     
     % 4 seconds: Blank
     Screen(theWindow,'FillRect',bgcolor, window_rect);
-    DrawFormattedText(theWindow, double('+'), 'center', 'center', white, [], [], [], 1.2);
     Screen('Flip', theWindow);
-        
+                
     %% EYELINK AND BIOPAC SETUP
-    
     if USE_EYELINK
         Eyelink('StartRecording');
-        rest.eyetracker_starttime = GetSecs; % eyelink timestamp
+        rest.data{SessID}.eyetracker_starttime = GetSecs; % eyelink timestamp
+        Eyelink('Message','Resting starttime');
     end
         
     if USE_BIOPAC
-        rest.biopac_starttime = GetSecs; % biopac timestamp
+        rest.data{SessID}.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(rest.biopac_starttime, 1);
+        waitsec_fromstarttime(rest.data{SessID}.biopac_starttime, 1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
-    %% MAIN PART of the experiment
-    
+    %% RESTING
+    rest.data{SessID}.resting_starttime = GetSecs; 
+    if USE_EYELINK
+        Eyelink('Message','Rest start');
+    end
+
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, '+','center', textH, white);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.runscan_starttime, 11);
-    
-    rest.seedword_starttime = GetSecs; % seed word timestamp
-    
-    % Showing seed word, beeping, recording
-    for response_n = 1:response_repeat
-        
-        % seed word for 2.5s
-        if response_n == 1
-            
-            Screen('FillRect', theWindow, bgcolor, window_rect);
-            Screen('TextSize', theWindow, fontsize*1.2); % emphasize
-            DrawFormattedText(theWindow, double(seed),'center', textH, orange);
-            Screen('Flip', theWindow);
-%             Screen('TextSize', theWindow, fontsize);   %****없어도 되는듯
-            waitsec_fromstarttime(rest.seedword_starttime, 2.5);
-            
-        end
-        
+    waitsec_fromstarttime(rest.data{SessID}.resting_starttime, 360);
 
+       
+    if USE_EYELINK
+        Eyelink('Message','Rest end');
     end
     
+    %% QESTION
+    z = randperm(6);
+    barsize = barsizeO(:,z);
+    for j=1:numel(z)
+        if ~barsize(5,j) == 0
+            if mod(barsize(5,j),2) ==0
+                SetMouse(rec(j,1)+(recsize(1)-barsize(1,j))/2, rec(j,2)+recsize(2)/2);
+            else SetMouse(rec(j,1)+recsize(1)/2, rec(j,2)+recsize(2)/2);
+            end
+            while(1)
+                % Track Mouse coordinate
+                [mx, my, button] = GetMouse(theWindow);
+                
+                x = mx;
+                y = rec(j,2)+recsize(2)/2;
+                if x < rec(j,1)+(recsize(1)-barsize(1,j))/2, x = rec(j,1)+(recsize(1)-barsize(1,j))/2;
+                elseif x > rec(j,1)+(recsize(1)+barsize(1,j))/2, x = rec(j,1)+(recsize(1)+barsize(1,j))/2;
+                end
+                display_survey(z, 1, 1, [],'resting');
+                DrawFormattedText(theWindow, question_prompt, 'center', textH, white);
+                Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
+                Screen('Flip', theWindow);
+                
+                if button(1)
+                    rest.data{SessID}.rating = rating(x, j);
+                    display_survey(z, 1, 1, [],'resting');
+                    Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
+                    Screen('Flip', theWindow);
+                    if USE_EYELINK
+                        Eyelink('Message','Rest Question response');
+                    end
+                    WaitSecs(.3);
+                    break;
+                end
+            end
+        end
+    end
+    
+
     %% RUN END MESSAGE
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
         DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
         Screen('Flip', theWindow);
-        
+        if USE_EYELINK
+            Eyelink('Message','Resting end');
+        end
+
         % if not practice mode, save the data
         if ~practice_mode
-            rest.response{1} = seed;
-            save(rest.wordfile, 'out');
+            out.response{1} = seed;
+            save(out.wordfile, 'out');
         end
         
-    %% Close the audio device:
-    
-    PsychPortAudio('Close', pahandle);
-    
-    if ~practice_mode && savewav 
-        [wavedir, wavefname] = fileparts(fname);
-        wave_savename = fullfile(wavedir, [wavefname '.wav']);
-        audiowrite(wave_savename,cat(2,rest.audiodata{:})',44100);
-    end
-        
-    
+
 catch err
     % ERROR 
     disp(err);
@@ -344,5 +377,17 @@ end
 ShowCursor; %unhide mouse
 Screen('CloseAll'); %relinquish screen control
 disp(str); %present this text in command window
+
+end
+
+function rx = rating(x, j)
+
+global barsize recsize rec;
+% rx start from 0
+if mod(barsize(5,j),2) == 0     % Self, Vividness: 0<=rx<=1
+    rx = x-(rec(j,1)+(recsize(1)-barsize(1,j))/2)/barsize(1,j);
+else                            % Valence, Time, Safety/Threat: -1<=rx<=1
+    rx = x-(rec(j,1)+(recsize(1)-barsize(1,j))/2)/(2*barsize(1,j))-1;
+end
 
 end

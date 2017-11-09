@@ -16,19 +16,18 @@ for i = 1:length(varargin)
                 try
                     
                     edfFile = sprintf('%s.EDF', savefilename);
-                    
                     % STEP 2
                     % Open a graphics window on the main screen
                     
-                    % [window1, wRect]=Screen('OpenWindow', whichScreen, 0,[],32,2); % wani: we don't need calibration
-                    % Screen(window1,'BlendFunction',GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); % wani: we don't need calibration
+                    [window1, wRect]=Screen('OpenWindow', whichScreen, 0,[],32,2); % wani: we don't need calibration
+                    Screen(window1,'BlendFunction',GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); % wani: we don't need calibration
                     
                     % STEP 3
                     % Provide Eyelink with details about the graphics environment
                     % and perform some initializations. The information is returned
                     % in a structure that also contains useful defaults
                     % and control codes (e.g. tracker state bit and Eyelink key values).
-                    % el=EyelinkInitDefaults(window1);
+                    el=EyelinkInitDefaults(window1);
                     
                     % STEP 4
                     % Initialization of the connection with the Eyelink Gazetracker.
@@ -43,10 +42,10 @@ for i = 1:length(varargin)
                     end
                     
                     % check the version of the eye tracker & host software
-                    % sw_version = 0;
+                    sw_version = 0;
                     [v, vs]=Eyelink('GetTrackerVersion');
-                    % fprintf('Running experiment on a ''%s''tracker.\n', vs );
-                    % fprintf('tracker version v=%d\n', v);
+                    fprintf('Running experiment on a ''%s''tracker.\n', vs );
+                    fprintf('tracker version v=%d\n', v);
                     
                     % open file to record data to
                     eye = Eyelink('Openfile', edfFile);
@@ -60,16 +59,16 @@ for i = 1:length(varargin)
                     end
                     
                     Eyelink('command', 'add_file_preamble_text ''Recorded by EyelinkToolbox demo-experiment''');
-                    % [width, height]=Screen('WindowSize', whichScreen); % wani: don't need calibration
+                    [width, height]=Screen('WindowSize', whichScreen); % wani: don't need calibration
                     
                     % STEP 5
                     % SET UP TRACKER CONFIGURATION
                     % Setting the proper recording resolution, proper calibration type,
                     % as well as the data file content;
-                    % Eyelink('command','screen_pixel_coords = %ld %ld %ld %ld', 0, 0, width-1, height-1); % wani: don't need calibration
-                    % Eyelink('message', 'DISPLAY_COORDS %ld %ld %ld %ld', 0, 0, width-1, height-1); % wani: don't need calibration
+                    Eyelink('command','screen_pixel_coords = %ld %ld %ld %ld', 0, 0, width-1, height-1); % wani: don't need calibration
+                    Eyelink('message', 'DISPLAY_COORDS %ld %ld %ld %ld', 0, 0, width-1, height-1); % wani: don't need calibration
                     % set calibration type.
-                    % Eyelink('command', 'calibration_type = HV9'); % wani: don't need calibration
+                    Eyelink('command', 'calibration_type = HV9'); % wani: don't need calibration
                     % set parser (conservative saccade thresholds) 
                     
                     % set EDF file contents using the file_sample_data and
@@ -123,11 +122,11 @@ for i = 1:length(varargin)
                     el.calibrationtargetwidth = 0.2;
                     
                     % you must call this function to apply the changes from above
-                    % EyelinkUpdateDefaults(el); % wani: don't need calibration
+                    EyelinkUpdateDefaults(el); % wani: don't need calibration
                     
                     % Hide the mouse cursor;
-                    % Screen('HideCursorHelper', window1); % wani: don't need calibration
-                    % EyelinkDoTrackerSetup(el); % wani: don't need calibration
+                    Screen('HideCursorHelper', window1); % wani: don't need calibration
+                    EyelinkDoTrackerSetup(el); % wani: don't need calibration
                     
                 catch exc
                     %this "catch" section executes in case of an error in the "try" section

@@ -255,11 +255,7 @@ end
         else
             start_target = 1;
         end
-        % random rocation of 5 questions
-%         z = repmat([1 2 3 4 5 6], 40, 1);
-%             for i = 1:size(z,1)
-%                 z(i,:) = z(i,randperm(6));      end
-
+        
         % Get ready message: waiting for a space bar
         while (1)
             [~,~,keyCode] = KbCheck;

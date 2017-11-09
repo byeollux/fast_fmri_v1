@@ -100,10 +100,15 @@ elseif whattodo == 2 && survey      % is it right? 'survey' include task part.
         start_line(1) = numel(temp.audiodata);
         
     elseif survey
-        
-        start_line(1) = numel(temp.dat(1,:)); % the number of saved seed word
+        for j = 1:5
+            if ~isempty(temp.dat{1,i})
+                seeds_i = j;
+            end
+        end
+        start_line(1) = seeds_i; % the number of saved seed word
+
         for i = 1:40
-            if ~isempty(survey.dat{i,start_line(1)})
+            if ~isempty(temp.dat{i,start_line(1)})
                 target_i = i; 
             end   % the final number of saved target word           
         end

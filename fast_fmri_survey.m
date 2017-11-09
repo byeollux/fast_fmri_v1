@@ -81,7 +81,7 @@ lb=W*8/128;     %110        when W=1280
 tb=H*18/80;     %180
 
 recsize=[W*450/1280 H*175/800]; 
-barsizeO=[W*340/1280, W*200/1280, W*340/1280, W*200/1280, W*340/1280, 0;
+barsizeO=[W*340/1280, W*180/1280, W*340/1280, W*180/1280, W*340/1280, 0;
     10, 10, 10, 10, 10, 0; 10, 0, 10, 0, 10, 0;
     10, 10, 10, 10, 10, 0; 1, 2, 3, 4, 5, 0];
 rec=[lb,tb; lb+recsize(1),tb; lb,tb+recsize(2); lb+recsize(1),tb+recsize(2);
@@ -209,7 +209,7 @@ end
             else color = blue; color_code = 2;   end
             
             while(1)
-                display_survey(z, seeds_i, target_i, words,'practice2');
+                display_survey(z, seeds_i, target_i, pw,'practice2');
                 
                 % Track Mouse coordinate
                 [x, y, button] = GetMouse(theWindow);

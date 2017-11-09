@@ -1,4 +1,4 @@
-function rest = fast_fmri_resting(varargin)
+function rest = fast_fmri_resting(duration, varargin)
 
 % Run a word generation step of Free Association Semantic Task with the fMRI scanning. 
 %
@@ -97,7 +97,7 @@ end
 %% SETUP: global
 global theWindow W H; % window property
 global white red orange bgcolor; % color
-global fontsize window_rect lb tb recsize rec; % rating scale
+global fontsize window_rect lb tb recsize rec barsize; % rating scale
 
 %% SETUP: Screen
 
@@ -125,11 +125,11 @@ white = 255;
 red = [189 0 38];
 orange = [255 164 0];
 
-lb=W*11/128;    % 110        when W=1280
+lb=W*14/128;    % 140        when W=1280
 tb=H*18/80;     % 180
 
-recsize=[W*520/1280 H*175/800]; 
-barsizeO=[W*340/1280, W*200/1280, W*340/1280, W*200/1280, W*340/1280, 0;
+recsize=[W*500/1280 H*175/800]; 
+barsize=[W*340/1280, W*180/1280, W*340/1280, W*180/1280, W*340/1280, 0;
     10, 10, 10, 10, 10, 0; 10, 0, 10, 0, 10, 0;
     10, 10, 10, 10, 10, 0; 1, 2, 3, 4, 5, 0];
 rec=[lb,tb; lb+recsize(1),tb; lb,tb+recsize(2); lb+recsize(1),tb+recsize(2);
@@ -143,20 +143,20 @@ rec=[lb,tb; lb+recsize(1),tb; lb,tb+recsize(2); lb+recsize(1),tb+recsize(2);
     if exist(fname, 'file'), load(fname, 'out'); end
       
     % add some task information
-    rest.version = 'FAST_fmri_wordgeneration_v1_11-05-2017';
+    rest.version = 'FAST_fmri_wordgeneration_v1_11-09-2017';
     rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     rest.subject = SID;
     rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
     rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
     rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    rest.resting = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);    
+    rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);    
     rest.exp_starttime = datestr(clock, 0); % date-time: timestamp
     
     rest.data = cell(1, 6);
   
     % initial save the data
-    save(rest.data{SessID}, 'rest');
+    save(rest.restingfile, 'rest');
 
 %% SETUP: Eyelink
 
@@ -184,11 +184,14 @@ try
     
     %% PROMPT SETUP:
     exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
+    if duration ==2
+        intro_prompt{1} = double('이제 2분간 쉬는 동안의 뇌 활동을 찍는 과제를 하겠습니다.');
+    else
     intro_prompt{1} = double('이제 6분간 쉬는 동안의 뇌 활동을 찍는 과제를 하겠습니다.');
     intro_prompt{2} = double('이 과제에서는 눈은 자연스럽게 떠 주시고 화면을 바라봐 주세요.');
     intro_prompt{3} = double('시작하시려면 버튼을 눌러주세요.');
-    intro_prompt{4} = double('이제 2분간 쉬는 동안의 뇌 활동을 찍는 과제를 하겠습니다.');
-
+    end 
+    
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     question_prompt = double('방금 쉬는 과제를 하는 동안 자연스럽게 떠올린 생각에 대한 질문입니다.'); 
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
@@ -258,7 +261,7 @@ try
     if USE_EYELINK
         Eyelink('StartRecording');
         rest.data{SessID}.eyetracker_starttime = GetSecs; % eyelink timestamp
-        Eyelink('Message','Resting starttime');
+        Eyelink('Message','Resting Run start');
     end
         
     if USE_BIOPAC
@@ -275,9 +278,9 @@ try
     end
 
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
-    DrawFormattedText(theWindow, '+','center', textH, white);
+    DrawFormattedText(theWindow, '+','center', 'center', white);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.data{SessID}.resting_starttime, 360);
+    waitsec_fromstarttime(rest.data{SessID}.resting_starttime, duration*60);
 
        
     if USE_EYELINK
@@ -286,7 +289,8 @@ try
     
     %% QESTION
     z = randperm(6);
-    barsize = barsizeO(:,z);
+    barsize = barsize(:,z);
+
     for j=1:numel(z)
         if ~barsize(5,j) == 0
             if mod(barsize(5,j),2) ==0
@@ -302,41 +306,43 @@ try
                 if x < rec(j,1)+(recsize(1)-barsize(1,j))/2, x = rec(j,1)+(recsize(1)-barsize(1,j))/2;
                 elseif x > rec(j,1)+(recsize(1)+barsize(1,j))/2, x = rec(j,1)+(recsize(1)+barsize(1,j))/2;
                 end
-                display_survey(z, 1, 1, [],'resting');
-                DrawFormattedText(theWindow, question_prompt, 'center', textH, white);
+                display_survey(z, 1, 1, question_prompt,'resting');
                 Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
                 Screen('Flip', theWindow);
                 
                 if button(1)
-                    rest.data{SessID}.rating = rating(x, j);
-                    display_survey(z, 1, 1, [],'resting');
+                    rest.data{SessID}.rating{barsize(5,j)} = rating(x, j);
+                    display_survey(z, 1, 1, question_prompt,'resting');
                     Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
                     Screen('Flip', theWindow);
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
                     end
+                    
                     WaitSecs(.3);
                     break;
                 end
             end
         end
     end
+    WaitSecs(.1)
+
+    %% RUN END MESSAGE & SAVE DATA
+    Screen(theWindow, 'FillRect', bgcolor, window_rect);
+    Screen('TextSize', theWindow, fontsize);
+    DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
+    Screen('Flip', theWindow);
+    if USE_EYELINK
+        Eyelink('Message','Resting Run end');
+    end
     
-
-    %% RUN END MESSAGE
-        Screen(theWindow, 'FillRect', bgcolor, window_rect);
-        DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
-        Screen('Flip', theWindow);
-        if USE_EYELINK
-            Eyelink('Message','Resting end');
-        end
-
-        % if not practice mode, save the data
-        if ~practice_mode
-            out.response{1} = seed;
-            save(out.wordfile, 'out');
-        end
-        
+    % save the data
+    save(rest.restingfile, 'rest');
+    
+    WaitSecs(2);
+    
+    ShowCursor; %unhide mouse
+    Screen('CloseAll'); %relinquish screen control
 
 catch err
     % ERROR 

@@ -195,6 +195,10 @@ try
     
     %% PROMPT SETUP:
     exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
+    intro_prompt{1} = double('지금부터 말하기 과제를 시작하겠습니다.');
+    intro_prompt{2} = double('2.5초마다 울리는 소리가 들리자마자 말씀해주세요!');
+    intro_prompt{3} = double('준비되셨으면 버튼을 눌러주세요.');
+
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
     
@@ -217,6 +221,24 @@ try
         Screen('Flip', theWindow);
     end
     
+     %% DISPLAY INTRO MESSAGE    
+        while (1)
+            [~, ~, button] = GetMouse(theWindow);
+            [~,~,keyCode] = KbCheck;
+            
+            if button(1)
+                break
+            elseif keyCode(KbName('q'))==1
+                abort_man;
+            end
+            Screen(theWindow,'FillRect',bgcolor, window_rect);
+            for i = 1:3
+                DrawFormattedText(theWindow, intro_prompt{i},'center', H/2-40*(2-i), white);
+            end
+            Screen('Flip', theWindow);
+        end
+        waitsec_fromstarttime(GetSecs, .3);
+           
     %% WAITING FOR INPUT FROM THE SCANNER
     while (1)
         [~,~,keyCode] = KbCheck;

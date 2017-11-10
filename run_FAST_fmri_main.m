@@ -2,9 +2,9 @@
 
 %% Sess 1
     %% Resting & Word Generation
-    fast_fmri_resting(0.01);       % practice resting
+    fast_fmri_resting(0.01, 'practice');       % practice resting
     % fast_fmri_resting(6);       % 6 min resting
-    fast_fmri_word_generation(seeds_rand{1});
+    fast_fmri_word_generation(seeds_rand{1},'practice');
     % fast_fmri_resting(2)        % 2 min resting
 
     %% Transcribe

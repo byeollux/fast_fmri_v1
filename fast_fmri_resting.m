@@ -69,7 +69,7 @@ function rest = fast_fmri_resting(duration, varargin)
 %
 
 %% default setting
-testmode = false;
+practice_mode = false;
 USE_EYELINK = false;
 USE_BIOPAC = false;
 savedir = fullfile(pwd, 'data');
@@ -88,8 +88,8 @@ for i = 1:length(varargin)
                 channel_n = 1;
                 biopac_channel = 0;
                 ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
-            case {'test', 'testmode'}
-                testmode = true;
+            case {'practice'}
+                practice_mode = true;
         end
     end
 end
@@ -105,12 +105,12 @@ addpath(genpath(psychtoolboxdir));
 
 bgcolor = 100;
 
-if testmode
-    window_rect = [1 1 1280 800]; % in the test mode, use a little smaller screen
-else
-    window_rect = get(0, 'MonitorPositions'); % full screen
-    if size(window_rect,1)>1   % for Byeol's desk, when there are two moniter
-        window_rect = window_rect(1,:);
+if practice_mode
+    if testmode
+        window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
+    else
+        screensize = get(groot, 'Screensize');
+        window_rect = [0 0 screensize(3) screensize(4)];
     end
 end
 

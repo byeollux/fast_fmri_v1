@@ -119,12 +119,10 @@ addpath(genpath(psychtoolboxdir));
 bgcolor = 100;
 
 if testmode
-    window_rect = [1 1 1280 800]; % in the test mode, use a little smaller screen
+    window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
 else
-    window_rect = get(0, 'MonitorPositions'); % full screen
-    if size(window_rect,1)>1   % for Byeol's desk, when there are two moniter
-        window_rect = window_rect(1,:);
-    end
+    screensize = get(groot, 'Screensize');
+    window_rect = [0 0 screensize(3) screensize(4)];
 end
 
 W = window_rect(3); % width of screen
@@ -156,6 +154,7 @@ if ~practice_mode % if not practice mode, save the data
     out.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     out.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
     out.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+    out.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
     out.exp_starttime = datestr(clock, 0); % date-time: timestamp
     out.seed = seed; % date-time: timestamp
     
@@ -196,8 +195,11 @@ try
     %% PROMPT SETUP:
     exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
     intro_prompt{1} = double('지금부터 말하기 과제를 시작하겠습니다.');
-    intro_prompt{2} = double('2.5초마다 울리는 소리가 들리자마자 말씀해주세요!');
-    intro_prompt{3} = double('준비되셨으면 버튼을 눌러주세요.');
+    intro_prompt{2} = double('2.5초마다 벨이 울리면 바로 떠오르는 단어나 문장을 말씀해주세요.');
+    intro_prompt{3} = double('떠오르지 않을 경우 전에 말한 내용을 반복해서 말할 수 있습니다.');
+    intro_prompt{4} = double('말을 할 때에는 또박또박 말씀해주세요');
+
+    intro_prompt{5} = double('\n준비되셨으면 버튼을 눌러주세요.');
 
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
@@ -232,8 +234,8 @@ try
                 abort_man;
             end
             Screen(theWindow,'FillRect',bgcolor, window_rect);
-            for i = 1:3
-                DrawFormattedText(theWindow, intro_prompt{i},'center', H/2-40*(2-i), white);
+            for i = 1:numel(intro_prompt)
+                DrawFormattedText(theWindow, intro_prompt{i},'center', textH-40*(2-i), white);
             end
             Screen('Flip', theWindow);
         end
@@ -312,7 +314,7 @@ try
         if response_n == 1
             
             Screen('FillRect', theWindow, bgcolor, window_rect);
-            Screen('TextSize', theWindow, fontsize*1.2); % emphasize
+            Screen('TextSize', theWindow, fontsize*2); % emphasize
             DrawFormattedText(theWindow, double(seed),'center', textH, orange);
             Screen('Flip', theWindow);
             waitsec_fromstarttime(out.seedword_starttime, 2.5);
@@ -335,6 +337,7 @@ try
         
         % cross for 1s
         Screen('FillRect', theWindow, bgcolor, window_rect);
+        Screen('TextSize', theWindow, fontsize*1.2); % emphasize
         DrawFormattedText(theWindow, '+', 'center', textH, white);
         Screen('Flip', theWindow);
         waitsec_fromstarttime(out.seedword_starttime, time_fromstart(response_n)-1.5)
@@ -378,8 +381,14 @@ try
         wave_savename = fullfile(wavedir, [wavefname '.wav']);
         audiowrite(wave_savename,cat(2,out.audiodata{:})',44100);
     end
-        
     
+    % close screen
+    WaitSecs(2);
+    
+    ShowCursor; %unhide mouse
+    Screen('CloseAll'); %relinquish screen control
+
+
 catch err
     % ERROR 
     disp(err);

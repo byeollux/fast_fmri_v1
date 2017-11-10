@@ -40,13 +40,13 @@ function data = fast_fmri_task_main(ts, varargin)
 % ..
 %% default setting
 testmode = false;
-do_practice = false;
+practice_mode = false;
 
 USE_EYELINK = false;
 USE_BIOPAC = false;
 savedir = fullfile(pwd, 'data');
 
-scriptdir = '/Users/byeoletoile/CloudStation/Project/Experiment/scripts/fast_fmri 2'; % modify this
+scriptdir = pwd; % modify this
 
 %% parsing varargin
 for i = 1:length(varargin)
@@ -67,7 +67,7 @@ for i = 1:length(varargin)
                 biopac_channel = 0;
                 ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
             case {'practice'}
-                do_practice = true;
+                practice_mode = true;
         end
     end
 end
@@ -84,12 +84,10 @@ global fontsize window_rect lb rb tb bb anchor_xl anchor_xr anchor_yu anchor_yd 
 bgcolor = 100;
 
 if testmode
-    window_rect = [1 1 1280 800]; % in the test mode, use a little smaller screen
+    window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
 else
-    window_rect = get(0, 'MonitorPositions'); % full screen
-    if size(window_rect,1)>1   %for Byeol's desk, when there are two moniter
-        window_rect = window_rect(1,:);
-    end
+    screensize = get(groot, 'Screensize');
+    window_rect = [0 0 screensize(3) screensize(4)];
 end
 
 W = window_rect(3); %width of screen
@@ -119,23 +117,25 @@ anchor_yu = tb-40; % 170
 anchor_yd = bb+20; % 710
 
 %% SETUP: DATA and Subject INFO
-
-[fname, start_line, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
-
-% add some task information
-data.version = 'FAST_fmri_task_v1_11-05-2017';
-data.github = 'https://github.com/cocoanlab/fast_fmri';
-data.subject = SID;
-data.session = SessID;
-data.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-data.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
-data.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-data.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-data.exp_starttime = datestr(clock, 0); % date-time: timestamp
-
-% initial save of trial sequence and data
-save(data.taskfile, 'ts', 'data');
-
+if ~practice_mode % if not practice mode, save the data
+    
+    [fname, start_line, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
+    
+    % add some task information
+    data.version = 'FAST_fmri_task_v1_11-05-2017';
+    data.github = 'https://github.com/cocoanlab/fast_fmri';
+    data.subject = SID;
+    data.session = SessID;
+    data.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
+    data.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
+    data.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
+    data.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+    data.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
+    data.exp_starttime = datestr(clock, 0); % date-time: timestamp
+    
+    % initial save of trial sequence and data
+    save(data.taskfile, 'ts', 'data');
+end
 
 %% SETUP: Eyelink
 
@@ -164,8 +164,13 @@ try
     HideCursor;
     
     %% PROMPT SETUP:
-    practice_prompt = double('연습을 해보겠습니다. 여러 개의 감정 단어들이 나타나면\n트랙볼로 커서를 움직여 아무 단어나 클릭하시면 됩니다.\n준비되셨으면 버튼을 눌러주세요');
-    pre_scan_prompt = double('이번에는 여러분이 방금 말씀하셨던 단어들을 순서대로 보게 될 것입니다.\n각 단어들을 15초 동안 보여드릴텐데 그 시간동안 그 단어들이 여러분에게 어떤 의미로 다가오는지\n자연스럽게 생각해보시기 바랍니다. 이후 여러 개의 감정 단어들 중에서\n여러분이 느끼는 감정과 가장 가까운 단어를 선택하시면 됩니다.\n모두 이해하셨으면 버튼을 클릭해주세요.');
+    practice_prompt = double('연습을 해보겠습니다.\n여러 개의 감정 단어들이 나타나면 5초 안에\n트랙볼로 커서를 움직여 아무 단어나 클릭하시면 됩니다.\n\n준비되셨으면 버튼을 눌러주세요');
+    pre_scan_prompt{1} = double('이제부터 여러분이 방금 말씀하셨던 단어들을 순서대로 보게 될 것입니다.');
+    pre_scan_prompt{2} = double('각 단어들을 15초 동안 보여드릴텐데 그 시간동안 그 단어들이');
+    pre_scan_prompt{3} = double('여러분에게 어떤 의미로 다가오는지 자연스럽게 생각해보시기 바랍니다.');
+    pre_scan_prompt{4} = double('이후 여러 개의 감정 단어들이 등장하면 5초 안에');
+    pre_scan_prompt{5} = double('여러분이 현재 느끼는 감정과 가장 가까운 단어를 선택하시면 됩니다.');
+    pre_scan_prompt{6} = double('\n준비되셨으면 버튼을 클릭해주세요.');
     exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
@@ -176,7 +181,7 @@ try
     %% PRACTICE RATING: Test trackball, Practice emotion rating
     
     % viewing the practice prompt until click. 
-    if do_practice
+    if practice_mode
         while (1)
             [~, ~, button] = GetMouse(theWindow);
             [~,~,keyCode] = KbCheck;
@@ -211,7 +216,9 @@ try
             abort_man;
         end
         Screen(theWindow,'FillRect',bgcolor, window_rect);
-        DrawFormattedText(theWindow, pre_scan_prompt, 'center', 'center', white, [], [], [], 1.5);
+        for i = 1:numel(pre_scan_prompt)
+            DrawFormattedText(theWindow, pre_scan_prompt{i},'center', textH-40*(2-i), white);
+        end
         Screen('Flip', theWindow);
     end
     
@@ -310,22 +317,16 @@ try
         
     end
     
-    %% DISPLAY POSTSCAN MESSAGE
-    while (1)
-        [~,~,keyCode] = KbCheck;
-        
-        if keyCode(KbName('n'))==1
-            break
-        elseif keyCode(KbName('q'))==1
-            abort_man;
-        end
+    %% RUN END MESSAGE
+
         Screen(theWindow,'FillRect',bgcolor, window_rect);
         DrawFormattedText(theWindow, run_end_prompt, 'center', 'center', white, [], [], [], 1.5);
         Screen('Flip', theWindow);
-    end
     
     save(data.taskfile, 'data', '-append');
     
+    WaitSecs(2);
+
     ShowCursor; %unhide mouse
     Screen('CloseAll'); %relinquish screen control 
     

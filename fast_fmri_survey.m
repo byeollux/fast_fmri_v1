@@ -1,9 +1,5 @@
 function survey = fast_fmri_survey(words, varargin)
 %
-%
-%
-%
-%
 %   out.dat{target_i,seeds_i}{barsize(5,j)}.tracjectory
 %   out.dat{target_i,seeds_i}{barsize(5,j)}.time
 %   out.dat{target_i,seeds_i}{barsize(5,j)}.rating      
@@ -19,15 +15,12 @@ function survey = fast_fmri_survey(words, varargin)
 %   out.dat{target_i,seeds_i}{6}.tracjectory = 'Bodymap'
 %
 %
-%
-%
-%
 %% default setting
 testmode = false;
 practice_mode = false;
 savedir = fullfile(pwd, 'data');
 psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
-scriptdir = '/Users/byeoletoile/CloudStation/Project/Experiment/scripts/fast_fmri_v1';
+scriptdir = pwd;
 
 practice_repeat= 4;
 
@@ -56,14 +49,12 @@ global fontsize window_rect lb tb bodymap recsize barsize rec; % rating scale
 bgcolor = 100;
 
 if testmode
-    window_rect = [1 1 1280 800]; % in the test mode, use a little smaller screen
+    window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
 else
-    window_rect = get(0, 'MonitorPositions'); % full screen
-    if size(window_rect,1)>1   %for Byeol's desk, when there are two moniter
-%         window_rect = window_rect(1,:);
-        window_rect = [1 1 1728 972];
-    end
+    screensize = get(groot, 'Screensize');
+    window_rect = [0 0 screensize(3) screensize(4)];
 end
+
 
 W = window_rect(3); %width of screen
 H = window_rect(4); %height of screen
@@ -110,6 +101,7 @@ if ~practice_mode % if not practice mode, save the data
     survey.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sessnumber.mat']);
     survey.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sessnumber.mat']);
     survey.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
+    survey.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
     survey.exp_starttime = datestr(clock, 0); % date-time: timestamp
     survey.dat_descript = {'nth of cell:Questions'; '1:Valence'; '2:Self-relevance'; '3:Time'; '4:Vividness'; '5:SafetyThreat'; '6:Bodymap'};
     survey.dat_body_xy = [body_x body_y];
@@ -123,7 +115,6 @@ end
 
 %% Survey start: =========================================================
 
-% try   % 왜 try catch 를 없앴을까
     %% START: Screen
 	theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
     Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');

@@ -17,9 +17,6 @@ function ts = fast_fmri_generate_ts
 %%
 ts = cell(40,1);
 
-SID = input('Subject ID (number)? ', 's');
-SessID = input('Session number? ', 's');
-
 savedir = fullfile(pwd, 'data');
 dat_file = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
 

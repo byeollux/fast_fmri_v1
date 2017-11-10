@@ -13,7 +13,7 @@
 
     %% Thinking and Rating
     ts = fast_fmri_generate_ts;
-    fast_fmri_task_main(ts,'practice');
+    fast_fmri_task_main(ts);
 
     %% Whole words list & Survey
     words = fast_fmri_wholewords;

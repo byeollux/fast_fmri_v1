@@ -197,8 +197,9 @@ try
         end
         WaitSecs(.3)
         emotion_rating(GetSecs); % sub-function: 5s
+        concent_rating(GetSecs);
         
-        % Blank for ITI
+        % practice end
         Screen(theWindow,'FillRect',bgcolor, window_rect);
         DrawFormattedText(theWindow, run_end_prompt, 'center', 'center', white, [], [], [], 1.5);
         Screen('Flip', theWindow);
@@ -284,19 +285,21 @@ try
     
     
     %% MAIN TASK 1. SHOW 2 WORDS, WORD PROMPT
-    
+    a=1;
     for ts_i = 1:numel(ts)   % repeat for 40 trials
         
+       
         data.dat{ts_i}.trial_starttime = GetSecs; % trial start timestamp
         display_target_word(ts{ts_i}{1}); % sub-function, display two generated words
-        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, 15); % for 15s
+        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, a); % for 15s
          
         % Blank for ISI
         data.dat{ts_i}.isi_starttime = GetSecs;  % ISI start timestamp
         Screen(theWindow,'FillRect',bgcolor, window_rect);
         Screen('Flip', theWindow);
-        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, 15+ts{ts_i}{2});
+        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, a+ts{ts_i}{2});
         
+        % Emotion Rating
         if ts{ts_i}{3} ~=0   % if 3rd column of ts is not 0, do rating for 5s
             data.dat{ts_i}.rating_starttime = GetSecs;  % rating start timestamp
             [data.dat{ts_i}.rating_emotion_word, data.dat{ts_i}.rating_trajectory_time, ...
@@ -306,9 +309,22 @@ try
             data.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
             Screen(theWindow,'FillRect',bgcolor, window_rect);
             Screen('Flip', theWindow);
-            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, 15+ts{ts_i}{2}+5+ts{ts_i}{3});
+            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, a+ts{ts_i}{2}+5+ts{ts_i}{3});
         end
-        
+
+        % Concentration Qustion
+        if ts{ts_i}{4} ~=0   % if 4rd column of ts is not 0, ask concentration for 9+3s
+            data.dat{ts_i}.concent_starttime = GetSecs;  % rating start timestamp
+            [data.dat{ts_i}.rating_concent, data.dat{ts_i}.rating_concent_time, ...
+                data.dat{ts_i}.rating_trajectory] = concent_rating(data.dat{ts_i}.concent_starttime); % sub-function
+            
+            % Blank for ITI
+            data.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
+            Screen(theWindow,'FillRect',bgcolor, window_rect);
+            Screen('Flip', theWindow);
+            waitsec_fromstarttime(data.dat{ts_i}.iti_starttime, a+ts{ts_i}{2}+12+ts{ts_i}{4});
+        end
+
         
         % save data every even trial
         if mod(ts_i, 2) == 0 
@@ -378,15 +394,15 @@ function display_target_word(words)
 
 global W H white theWindow window_rect bgcolor
 
-
+fontsize = [45 65];
 % Calcurate the W & H of two generated words
-Screen('TextSize', theWindow, 30);
+Screen('TextSize', theWindow, fontsize(1));
 [response_W(1), response_H(1)] = Screen(theWindow, 'DrawText', double(words{1}), 0, 0);
 
-Screen('TextSize', theWindow, 50);
+Screen('TextSize', theWindow, fontsize(2));
 [response_W(2), response_H(2)] = Screen(theWindow, 'DrawText', double(words{2}), 0, 0);
 
-interval = 100;  % between two words
+interval = 150;  % between two words
 % coordinates of the words 
 x(1) = W/2 - interval/2 - response_W(1);
 x(2) = W/2 + interval/2;
@@ -396,10 +412,10 @@ y(2) = H/2 - response_H(2);
 
 Screen(theWindow,'FillRect',bgcolor, window_rect);
 
-Screen('TextSize', theWindow, 40); % previous word, fontsize = 40
+Screen('TextSize', theWindow, fontsize(1)); % previous word, fontsize = 45
 DrawFormattedText(theWindow, double(words{1}), x(1), y(1), white, [], [], [], 1.5);
 
-Screen('TextSize', theWindow, 60); % present word, fontsize = 60
+Screen('TextSize', theWindow, fontsize(2)); % present word, fontsize = 65
 DrawFormattedText(theWindow, double(words{2}), x(2), y(2), white, [], [], [], 1.5);
 
 Screen('Flip', theWindow);
@@ -430,7 +446,7 @@ while(1)
     Screen('DrawDots', theWindow, [x y], 10, orange, [0, 0], 1); % draw orange dot on the cursor
     Screen('Flip', theWindow);
     
-    trajectory(j,:) = [x y];                  % trajectory of rocation of cursor
+    trajectory(j,:) = [x y];                  % trajectory of location of cursor
     trajectory_time(j) = GetSecs - starttime; % trajectory of time
     
     if trajectory_time(end) >= 5  % maximum time of rating is 5s
@@ -488,13 +504,94 @@ choice = choice(z);
 %%
 Screen(theWindow,'FillRect',bgcolor, window_rect);
 Screen('TextSize', theWindow, 30);
-
+% Rectangle
 for i = 1:numel(theta)
     Screen('FrameRect', theWindow, colors, CenterRectOnPoint(square,xy(i,1),xy(i,2)),3);
 end
-
+% Choice letter
 for i = 1:numel(choice)
     DrawFormattedText(theWindow, double(choice{i}), 'center', 'center', white, [],[],[],[],[],xy_word(i,:));
 end
+
+end
+
+function [concentration, trajectory_time, trajectory] = concent_rating(starttime)
+
+global W H orange bgcolor window_rect theWindow red fontsize white 
+intro_prompt1 = double('지금, 나타나는 단어들에 대해 얼마나 주의를 잘 기울이고 계신가요?');
+intro_prompt2 = double('10초 안에 트랙볼을 움직여서 집중하고 있는 정도를 클릭해주세요.');
+end_prompt = double('과제가 다시 이어집니다. 집중해주세요.');
+
+title={'전혀 기울이지 않음','보통', '매우 집중하고 있음'};
+
+SetMouse(W/4, H/2);
+
+trajectory = [];
+trajectory_time = [];
+xy = [W/4 W*3/4 W/4 W/4 W*3/4 W*3/4;
+      H/2 H/2 H/2-7 H/2+7 H/2-7 H/2+7];
+
+j = 0;
+
+
+while(1)
+    j = j + 1;
+    [mx, my, button] = GetMouse(theWindow);
+    
+    x = mx;
+    y = H/2;
+    if x < W/4, x = W/4;
+    elseif x > W*3/4, x = W*3/4;
+    end
+    
+    Screen('TextSize', theWindow, fontsize);
+    Screen(theWindow,'FillRect',bgcolor, window_rect);
+    Screen('DrawLines',theWindow, xy, 5, 255);
+    DrawFormattedText(theWindow, intro_prompt1,'center', H/4, white);
+    DrawFormattedText(theWindow, intro_prompt2,'center', H/4+40, white);
+    % Draw scale letter
+    DrawFormattedText(theWindow, double(title{1}),'center', 'center', white, ...
+                [],[],[],[],[], [xy(1,1)-15, xy(2,1), xy(1,1)+20, xy(2,1)+60]);
+    DrawFormattedText(theWindow, double(title{2}),'center', 'center', white, ...
+                [],[],[],[],[], [W/2-15, xy(2,1), W/2+20, xy(2,1)+60]);
+    DrawFormattedText(theWindow, double(title{3}),'center', 'center', white, ...
+                [],[],[],[],[], [xy(1,2)-15, xy(2,1), xy(1,2)+20, xy(2,1)+60]);
+
+    Screen('DrawDots', theWindow, [x y], 10, orange, [0, 0], 1); % draw orange dot on the cursor
+    Screen('Flip', theWindow);
+        
+    trajectory(j,:) = [(x-xy(1,1))/(W/2)];    % trajectory of location of cursor
+    trajectory_time(j) = GetSecs - starttime; % trajectory of time
+
+    if trajectory_time(end) >= 9  % maximum time of rating is 5s
+        button(1) = true;
+    end
+    
+    if button(1)  % After click, the color of cursor dot changes.
+        Screen(theWindow,'FillRect',bgcolor, window_rect);
+        Screen('DrawLines',theWindow, xy, 5, 255);
+        DrawFormattedText(theWindow, intro_prompt1,'center', H/4, white);
+        DrawFormattedText(theWindow, intro_prompt2,'center', H/4+40, white);
+        % Draw scale letter
+        DrawFormattedText(theWindow, double(title{1}),'center', 'center', white, ...
+            [],[],[],[],[], [xy(1,1)-15, xy(2,1), xy(1,1)+20, xy(2,1)+60]);
+        DrawFormattedText(theWindow, double(title{2}),'center', 'center', white, ...
+            [],[],[],[],[], [W/2-15, xy(2,1), W/2+20, xy(2,1)+60]);
+        DrawFormattedText(theWindow, double(title{3}),'center', 'center', white, ...
+            [],[],[],[],[], [xy(1,2)-15, xy(2,1), xy(1,2)+20, xy(2,1)+60]);
+        Screen('DrawDots', theWindow, [x;y], 10, red, [0 0], 1);
+        Screen('Flip', theWindow);
+        
+        concentration = (x-xy(1,1))/(W/2);  % 0~1
+        
+        WaitSecs(0.3);   
+        break;
+    end    
+end
+
+Screen(theWindow, 'FillRect', bgcolor, window_rect);
+DrawFormattedText(theWindow, end_prompt, 'center', 'center', white);
+Screen('Flip', theWindow);
+WaitSecs(2.7);
 
 end

@@ -17,6 +17,9 @@ function ts = fast_fmri_generate_ts
 %%
 ts = cell(40,1);
 
+SID = input('Subject ID (number)? ', 's');
+SessID = input('Session number? ', 's');
+
 savedir = fullfile(pwd, 'data');
 dat_file = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
 
@@ -28,7 +31,7 @@ for i = 1:size(intervals,2) % size of column = 13, one column has info for 3 tri
     wh_rating(i) = randi(3); % which one of 3 trials will be rated?
 end
 
-isi_iti = zeros(40,2);  % make empty matrix
+isi_iti = zeros(40,3);  % make empty matrix
 
 for i = 1:13
     idx = (3*(i-1)+1):(3*(i-1)+3);     % remainder after divided by 3 = 1,2,3
@@ -37,10 +40,24 @@ for i = 1:13
     isi_iti(idx(wh_rating(i)),2) = intervals(4,i); % 4th row of 'intervals' will be a ITI
 end
 
+% concetration condition
+concent_iti = [4 6 9];
+concent_iti = concent_iti(:,randperm(3));
+for i = 1:numel(concent_iti)
+    if isi_iti(i*10,2)==0
+        isi_iti(i*10,3) = concent_iti(i);
+    elseif isi_iti(i*10+1,2)==0
+        isi_iti(i*10+1,3) = concent_iti(i);
+    else 
+        isi_iti(i*10+2,3) = concent_iti(i);
+    end
+end    
+
+
 isi_iti(40,1) = 15;  % After the final words, waiting 15s
 
 for i = 1:(numel(response)-1)   % add two words series at the first and second columns of 'ts'
-    ts{i} = {{response{i}, response{i+1}}, isi_iti(i,1), isi_iti(i,2)};
+    ts{i} = {{response{i}, response{i+1}}, isi_iti(i,1), isi_iti(i,2), isi_iti(i,3)};
 end
 
 end

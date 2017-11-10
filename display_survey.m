@@ -47,7 +47,7 @@ title={'','', '','', '', '';
    
 body_prompt = {'해당 단어를 떠올릴 때 활성화되는 느낌이 드는 부분은 빨간색으로,'
     '비활성화되는 느낌이 드는 부분은 파란색으로 색칠해주세요.';
-    '한 단어에 대해서 빨간색과 파란색 모두 칠할 수 있습니다';
+    '한 단어에 대해 빨간색과 파란색 모두 칠할 수 있고 한번 칠해진 곳은 지울 수 없습니다';
     '버튼 r을 누르면 빨간색으로, b를 누르면 파란색으로 칠할 수 있습니다.';
     '\n다 칠하셨으면 키보드 a을 눌러주세요.'};
 
@@ -153,7 +153,8 @@ elseif practice2
     Screen('TextSize', theWindow, fontsize(3));
     % Instruction
     for i = 1:numel(body_prompt)
-        DrawFormattedText(theWindow, double(body_prompt{i}), 'center', 200+30*i, white);
+        DrawFormattedText(theWindow, double(body_prompt{i}), 'center', H/3+50*i, ...
+            white, [], [], [], [], [], [0 H/4 W*4/5 H*2/3]);
     end
     
 elseif resting

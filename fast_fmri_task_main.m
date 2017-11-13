@@ -83,11 +83,18 @@ global fontsize window_rect lb rb tb bb anchor_xl anchor_xr anchor_yu anchor_yd 
 
 bgcolor = 100;
 
-if testmode
-    window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
-else
-    screensize = get(groot, 'Screensize');
-    window_rect = [0 0 screensize(3) screensize(4)];
+if practice_mode
+    if testmode
+        window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
+    else
+        % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
+        % screen, these are nessecary and different from Wani's version.
+        screens = Screen('Screens'); 
+        window_num = screens(end);
+        Screen('Preference', 'SkipSyncTests', 1);
+        window_info = Screen('Resolution', window_num);
+        window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
+    end
 end
 
 W = window_rect(3); %width of screen

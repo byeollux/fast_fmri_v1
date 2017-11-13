@@ -92,6 +92,7 @@ end
 fontsize = [35, 55, 27, 23]; % Word1, W2, title(1,:), title(2~4,:)
 
 %%
+
 if whole
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     Screen('PutImage', theWindow, bodymap, window_rect); % put bodymap image on screen

@@ -52,9 +52,8 @@ if testmode
     window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
 else
     screensize = get(groot, 'Screensize');
-    window_rect = [0 0 screensize(3) screensize(4)];
+    window_rect = [0 0 screensize(3) screensize(4)]; % should test in experimental room
 end
-
 
 W = window_rect(3); %width of screen
 H = window_rect(4); %height of screen

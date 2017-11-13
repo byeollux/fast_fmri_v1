@@ -121,9 +121,19 @@ bgcolor = 100;
 if testmode
     window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
 else
+    
     screensize = get(groot, 'Screensize');
-    window_rect = [0 0 screensize(3) screensize(4)];
+    window_rect = [0 0 screensize(3) screensize(4)]; % should test in experimental room
+    
+    %         % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
+    %         % screen, these are nessecary and different from Wani's version.
+    %         screens = Screen('Screens');
+    %         window_num = screens(end);
+    %         Screen('Preference', 'SkipSyncTests', 1);
+    %         window_info = Screen('Resolution', window_num);
+    %         window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
 end
+
 
 W = window_rect(3); % width of screen
 H = window_rect(4); % height of screen
@@ -193,6 +203,8 @@ try
     HideCursor;
     
     %% PROMPT SETUP:
+    practice_prompt{1} = double('녹음 테스트를 해보겠습니다.');
+    practice_prompt{2} = double('단어가 보이고 벨이 2.5초씩 2번 울릴 때마다 말씀해주세요.\n준비되셨으면 버튼을 눌러주세요.');
     exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
     intro_prompt{1} = double('지금부터 말하기 과제를 시작하겠습니다.');
     intro_prompt{2} = double('2.5초마다 벨이 울리면 바로 떠오르는 단어나 문장을 말씀해주세요.');
@@ -209,6 +221,83 @@ try
     end
     
     %% TEST RECORDING... and play
+    % Recording Setting
+%     InitializePsychSound;
+    pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
+    % Sound recording: Preallocate an internal audio recording  buffer with a capacity of 10 seconds
+    PsychPortAudio('GetAudioData', pahandle, 10);
+    
+    while (1)
+        [~,~,keyCode] = KbCheck;
+        [~, ~, button] = GetMouse(theWindow);
+        if button(1)
+            break
+        elseif keyCode(KbName('q'))==1
+            abort_man;
+        end
+        Screen(theWindow, 'FillRect', bgcolor, window_rect);
+        for i = 1:numel(practice_prompt)
+            DrawFormattedText(theWindow, practice_prompt{i},'center', textH-40*(2-i), white);
+        end
+        Screen('Flip', theWindow);
+    end
+        
+    % Showing seed word, beeping, recording
+    for n = 1:3
+        
+        % seed word for 2.5s
+        if n == 1            
+            Screen('FillRect', theWindow, bgcolor, window_rect);
+            Screen('TextSize', theWindow, fontsize*2); % emphasize
+            DrawFormattedText(theWindow, double('테스트'),'center', textH, orange);
+            Screen('Flip', theWindow);
+            waitsec_fromstarttime(GetSecs, 2.5);            
+        end
+        
+        % start recording
+        PsychPortAudio('Start', pahandle, 0, 0, 1);
+        Screen('FillRect', theWindow, bgcolor, window_rect);
+        Screen('Flip', theWindow);
+        
+        % beeping
+        beep = MakeBeep(1000,.2);
+        Snd('Play',beep);
+        
+        % cross for 1s
+        Screen('FillRect', theWindow, bgcolor, window_rect);
+        Screen('TextSize', theWindow, fontsize*1.2); % emphasize
+        DrawFormattedText(theWindow, '+', 'center', textH, white);
+        Screen('Flip', theWindow);
+        waitsec_fromstarttime(GetSecs, 1)
+        
+        % blank for 1.5s
+        Screen('FillRect', theWindow, bgcolor, window_rect);
+        Screen('Flip', theWindow);
+        waitsec_fromstarttime(GetSecs, 1.5)
+        
+        % stop recording
+        PsychPortAudio('Stop', pahandle);
+        out.test_audiodata{n} = PsychPortAudio('GetAudioData', pahandle);
+    end
+
+    Screen('FillRect', theWindow, bgcolor, window_rect);
+    Screen('TextSize', theWindow, fontsize); % emphasize
+    DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
+    Screen('Flip', theWindow);
+
+    for n = 1:3
+        while (1)
+            [~,~,keyCode] = KbCheck;
+            if keyCode(KbName('space'))==1
+                dat_file = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
+                load(dat_file);
+                players = audioplayer(out.test_audiodata{n}', 44100);
+                play(players);
+            elseif keyCode(KbName('return'))==1
+                break
+            end
+        end 
+    end
     
     %% DISPLAY EXP START MESSAGE
     while (1)
@@ -285,7 +374,7 @@ try
     end
     
     %% SOUND RECORDING INIT
-    % InitializePsychSound; % it's saved in run_FAST_fmri_main.m because it
+%     InitializePsychSound; % it's saved in run_FAST_fmri_main.m because it
                             % should be run only once for the entire scan.
                             % Maybe, with windows, we can have this here.
                             

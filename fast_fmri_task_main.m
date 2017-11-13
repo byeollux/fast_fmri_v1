@@ -83,25 +83,23 @@ global fontsize window_rect lb rb tb bb anchor_xl anchor_xr anchor_yu anchor_yd 
 
 bgcolor = 100;
 
-if practice_mode
-    if testmode
-        window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
-    else
-        % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
-        % screen, these are nessecary and different from Wani's version.
-        screens = Screen('Screens'); 
-        window_num = screens(end);
-        Screen('Preference', 'SkipSyncTests', 1);
-        window_info = Screen('Resolution', window_num);
-        window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
-    end
+if testmode
+    window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
+else
+    % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
+    % screen, these are nessecary and different from Wani's version.
+    screens = Screen('Screens');
+    window_num = screens(end);
+    Screen('Preference', 'SkipSyncTests', 1);
+    window_info = Screen('Resolution', window_num);
+    window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
 end
 
 W = window_rect(3); %width of screen
 H = window_rect(4); %height of screen
 textH = H/2.3;
 
-font = 'NanumBarunGothic';
+font = 'NanumGothic';
 fontsize = 30;
 
 white = 255;
@@ -117,11 +115,6 @@ rb = 3.5*W/5; % in 1280, it's 896 rb-lb = 512
 tb = H/5+100;           % in 800, it's 210
 bb = H/2+100;           % in 800, it's 450, bb-tb = 240
 scale_H = (bb-tb).*0.15;
-
-anchor_xl = lb-80; % 284
-anchor_xr = rb+20; % 916
-anchor_yu = tb-40; % 170
-anchor_yd = bb+20; % 710
 
 %% SETUP: DATA and Subject INFO
 if ~practice_mode % if not practice mode, save the data
@@ -182,9 +175,6 @@ try
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
     
-    % word_prompt = double('이 단어들이 여러분에게 어떤 느낌 의미인지 자연스럽게 생각해보세요.');
-    % emo_question_prompt = double('감정 단어들 중에서 이 단어들과 관련하여 여러분이 느끼는 감정과 가장 가까운 단어는 무엇인가요?');
-    
     %% PRACTICE RATING: Test trackball, Practice emotion rating
     
     % viewing the practice prompt until click. 
@@ -211,6 +201,9 @@ try
         DrawFormattedText(theWindow, run_end_prompt, 'center', 'center', white, [], [], [], 1.5);
         Screen('Flip', theWindow);
         WaitSecs(2);
+        
+        ShowCursor; %unhide mouse
+        Screen('CloseAll'); 
     end
     
     %% DISPLAY PRESCAN MESSAGE
@@ -292,19 +285,18 @@ try
     
     
     %% MAIN TASK 1. SHOW 2 WORDS, WORD PROMPT
-    a=1;
+    wordT = 1;   % duration for showing target words
+    cqT = 9;     % duration for question of concentration
     for ts_i = 1:numel(ts)   % repeat for 40 trials
-        
-       
         data.dat{ts_i}.trial_starttime = GetSecs; % trial start timestamp
         display_target_word(ts{ts_i}{1}); % sub-function, display two generated words
-        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, a); % for 15s
+        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT); % for 15s
          
         % Blank for ISI
         data.dat{ts_i}.isi_starttime = GetSecs;  % ISI start timestamp
         Screen(theWindow,'FillRect',bgcolor, window_rect);
         Screen('Flip', theWindow);
-        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, a+ts{ts_i}{2});
+        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2});
         
         % Emotion Rating
         if ts{ts_i}{3} ~=0   % if 3rd column of ts is not 0, do rating for 5s
@@ -316,11 +308,11 @@ try
             data.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
             Screen(theWindow,'FillRect',bgcolor, window_rect);
             Screen('Flip', theWindow);
-            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, a+ts{ts_i}{2}+5+ts{ts_i}{3});
+            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2}+5+ts{ts_i}{3});
         end
 
         % Concentration Qustion
-        if ts{ts_i}{4} ~=0   % if 4rd column of ts is not 0, ask concentration for 9+3s
+        if ts{ts_i}{4} ~=0   % if 4rd column of ts is not 0, ask concentration for 9(ct)+3s
             data.dat{ts_i}.concent_starttime = GetSecs;  % rating start timestamp
             [data.dat{ts_i}.rating_concent, data.dat{ts_i}.rating_concent_time, ...
                 data.dat{ts_i}.rating_trajectory] = concent_rating(data.dat{ts_i}.concent_starttime); % sub-function
@@ -329,10 +321,9 @@ try
             data.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
             Screen(theWindow,'FillRect',bgcolor, window_rect);
             Screen('Flip', theWindow);
-            waitsec_fromstarttime(data.dat{ts_i}.iti_starttime, a+ts{ts_i}{2}+12+ts{ts_i}{4});
+            waitsec_fromstarttime(data.dat{ts_i}.iti_starttime, wordT+ts{ts_i}{2}+cqT+3+ts{ts_i}{4});
         end
 
-        
         % save data every even trial
         if mod(ts_i, 2) == 0 
             save(data.taskfile, 'data', '-append'); % 'append' overwrite with adding new columns to 'data'
@@ -484,7 +475,7 @@ end
 
 function [choice, xy_rect] = display_emotion_words(z)
 
-global W H white theWindow window_rect bgcolor square
+global W H white theWindow window_rect bgcolor square fontsize
 
 square = [0 0 140 80];  % size of square of word
 r=350;
@@ -510,7 +501,7 @@ choice = choice(z);
 
 %%
 Screen(theWindow,'FillRect',bgcolor, window_rect);
-Screen('TextSize', theWindow, 30);
+Screen('TextSize', theWindow, fontsize);
 % Rectangle
 for i = 1:numel(theta)
     Screen('FrameRect', theWindow, colors, CenterRectOnPoint(square,xy(i,1),xy(i,2)),3);
@@ -524,7 +515,7 @@ end
 
 function [concentration, trajectory_time, trajectory] = concent_rating(starttime)
 
-global W H orange bgcolor window_rect theWindow red fontsize white 
+global W H orange bgcolor window_rect theWindow red fontsize white cqT
 intro_prompt1 = double('지금, 나타나는 단어들에 대해 얼마나 주의를 잘 기울이고 계신가요?');
 intro_prompt2 = double('10초 안에 트랙볼을 움직여서 집중하고 있는 정도를 클릭해주세요.');
 end_prompt = double('과제가 다시 이어집니다. 집중해주세요.');
@@ -539,7 +530,6 @@ xy = [W/4 W*3/4 W/4 W/4 W*3/4 W*3/4;
       H/2 H/2 H/2-7 H/2+7 H/2-7 H/2+7];
 
 j = 0;
-
 
 while(1)
     j = j + 1;
@@ -570,7 +560,7 @@ while(1)
     trajectory(j,:) = [(x-xy(1,1))/(W/2)];    % trajectory of location of cursor
     trajectory_time(j) = GetSecs - starttime; % trajectory of time
 
-    if trajectory_time(end) >= 9  % maximum time of rating is 5s
+    if trajectory_time(end) >= cqT  % maximum time of rating is 5s
         button(1) = true;
     end
     

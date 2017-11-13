@@ -105,25 +105,24 @@ addpath(genpath(psychtoolboxdir));
 
 bgcolor = 100;
 
-if practice_mode
-    if testmode
-        window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
-    else
-        % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
-        % screen, these are nessecary and different from Wani's version.
-        screens = Screen('Screens'); 
-        window_num = screens(end);
-        Screen('Preference', 'SkipSyncTests', 1);
-        window_info = Screen('Resolution', window_num);
-        window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
-    end
+if testmode
+    window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
+else
+    % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
+    % screen, these are nessecary and different from Wani's version.
+    screens = Screen('Screens');
+    window_num = screens(end);
+    Screen('Preference', 'SkipSyncTests', 1);
+    window_info = Screen('Resolution', window_num);
+    window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
 end
+
 
 W = window_rect(3); % width of screen
 H = window_rect(4); % height of screen
 textH = H/2.3;
 
-font = 'NanumBarunGothic';
+font = 'NanumGothic';
 fontsize = 30;
 
 white = 255;

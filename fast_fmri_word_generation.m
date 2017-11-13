@@ -121,17 +121,13 @@ bgcolor = 100;
 if testmode
     window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
 else
-    
-    screensize = get(groot, 'Screensize');
-    window_rect = [0 0 screensize(3) screensize(4)]; % should test in experimental room
-    
-    %         % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
-    %         % screen, these are nessecary and different from Wani's version.
-    %         screens = Screen('Screens');
-    %         window_num = screens(end);
-    %         Screen('Preference', 'SkipSyncTests', 1);
-    %         window_info = Screen('Resolution', window_num);
-    %         window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
+    % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
+    % screen, these are nessecary and different from Wani's version.
+    screens = Screen('Screens');
+    window_num = screens(end);
+    Screen('Preference', 'SkipSyncTests', 1);
+    window_info = Screen('Resolution', window_num);
+    window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
 end
 
 
@@ -140,7 +136,7 @@ H = window_rect(4); % height of screen
 textH = H/2.3;
 
 
-font = 'NanumBarunGothic';
+font = 'NanumGothic';
 fontsize = 30;
 
 white = 255;
@@ -204,15 +200,14 @@ try
     
     %% PROMPT SETUP:
     practice_prompt{1} = double('녹음 테스트를 해보겠습니다.');
-    practice_prompt{2} = double('단어가 보이고 벨이 2.5초씩 2번 울릴 때마다 말씀해주세요.\n준비되셨으면 버튼을 눌러주세요.');
-    exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
+    practice_prompt{2} = double('단어가 보이고 벨이 울리면 말씀해주세요. 3번 반복됩니다.');
+    practice_prompt{3} = double('\n준비되셨으면 버튼을 눌러주세요.');
     intro_prompt{1} = double('지금부터 말하기 과제를 시작하겠습니다.');
     intro_prompt{2} = double('2.5초마다 벨이 울리면 바로 떠오르는 단어나 문장을 말씀해주세요.');
     intro_prompt{3} = double('떠오르지 않을 경우 전에 말한 내용을 반복해서 말할 수 있습니다.');
     intro_prompt{4} = double('말을 할 때에는 또박또박 말씀해주세요');
-
-    intro_prompt{5} = double('\n준비되셨으면 버튼을 눌러주세요.');
-
+    intro_prompt{6} = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n\n모두 준비되었으면, 스페이스바를 눌러주세요.');
+    
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
     
@@ -222,7 +217,7 @@ try
     
     %% TEST RECORDING... and play
     % Recording Setting
-%     InitializePsychSound;
+    InitializePsychSound;
     pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
     % Sound recording: Preallocate an internal audio recording  buffer with a capacity of 10 seconds
     PsychPortAudio('GetAudioData', pahandle, 10);
@@ -237,14 +232,13 @@ try
         end
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
         for i = 1:numel(practice_prompt)
-            DrawFormattedText(theWindow, practice_prompt{i},'center', textH-40*(2-i), white);
+            DrawFormattedText(theWindow, practice_prompt{i},'center', textH-50*(2-i), white);
         end
         Screen('Flip', theWindow);
     end
         
-    % Showing seed word, beeping, recording
+    % Showing seed word, beeping, recording X 3 times
     for n = 1:3
-        
         % seed word for 2.5s
         if n == 1            
             Screen('FillRect', theWindow, bgcolor, window_rect);
@@ -284,20 +278,26 @@ try
     Screen('TextSize', theWindow, fontsize); % emphasize
     DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
     Screen('Flip', theWindow);
-
-    for n = 1:3
-        while (1)
-            [~,~,keyCode] = KbCheck;
-            if keyCode(KbName('space'))==1
-                dat_file = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-                load(dat_file);
-                players = audioplayer(out.test_audiodata{n}', 44100);
-                play(players);
-            elseif keyCode(KbName('return'))==1
-                break
-            end
-        end 
+    
+    PsychPortAudio('Close', pahandle);
+    save(out.wordfile, 'out');
+    
+    dat_file = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
+    load(dat_file);
+    
+    Screen('FillRect', theWindow, bgcolor, window_rect);
+    Screen('TextSize', theWindow, fontsize); % emphasize
+    DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
+    Screen('Flip', theWindow);
+    
+    % play the 3 sounds
+    for z=1:3
+        WaitSecs(0.5);
+        players = audioplayer(out.test_audiodata{z}', 44100);
+        play(players);
+        WaitSecs(3);
     end
+    
     
     %% DISPLAY EXP START MESSAGE
     while (1)
@@ -308,27 +308,13 @@ try
             abort_man;
         end
         Screen(theWindow,'FillRect',bgcolor, window_rect);
-        DrawFormattedText(theWindow, exp_start_prompt, 'center', 'center', white, [], [], [], 1.5);
+        for i = 1:numel(intro_prompt)
+            DrawFormattedText(theWindow, intro_prompt{i},'center', textH-40*(2-i), white);
+        end
         Screen('Flip', theWindow);
     end
     
-     %% DISPLAY INTRO MESSAGE    
-        while (1)
-            [~, ~, button] = GetMouse(theWindow);
-            [~,~,keyCode] = KbCheck;
-            
-            if button(1)
-                break
-            elseif keyCode(KbName('q'))==1
-                abort_man;
-            end
-            Screen(theWindow,'FillRect',bgcolor, window_rect);
-            for i = 1:numel(intro_prompt)
-                DrawFormattedText(theWindow, intro_prompt{i},'center', textH-40*(2-i), white);
-            end
-            Screen('Flip', theWindow);
-        end
-        waitsec_fromstarttime(GetSecs, .3);
+    waitsec_fromstarttime(GetSecs, .3);
            
     %% WAITING FOR INPUT FROM THE SCANNER
     while (1)

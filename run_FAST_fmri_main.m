@@ -1,5 +1,4 @@
 
-
 %% Sess 1
     %% Resting & Word Generation
     fast_fmri_resting(0.01, 'practice');       % practice resting

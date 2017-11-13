@@ -387,7 +387,6 @@ try
         
         % seed word for 2.5s
         if response_n == 1
-            
             Screen('FillRect', theWindow, bgcolor, window_rect);
             Screen('TextSize', theWindow, fontsize*2); % emphasize
             DrawFormattedText(theWindow, double(seed),'center', textH, orange);
@@ -396,7 +395,6 @@ try
             if USE_EYELINK
                 Eyelink('Message','WG SeedWord');
             end
-            
         end
         
         % start recording

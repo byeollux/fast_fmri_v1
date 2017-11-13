@@ -132,7 +132,7 @@ orange = [255 164 0];
 lb=W*14/128;    % 140        when W=1280
 tb=H*18/80;     % 180
 
-recsize=[W*500/1280 H*175/800]; 
+recsize=[W*450/1280 H*175/800]; 
 barsize=[W*340/1280, W*180/1280, W*340/1280, W*180/1280, W*340/1280, 0;
     10, 10, 10, 10, 10, 0; 10, 0, 10, 0, 10, 0;
     10, 10, 10, 10, 10, 0; 1, 2, 3, 4, 5, 0];
@@ -143,24 +143,30 @@ rec=[lb,tb; lb+recsize(1),tb; lb,tb+recsize(2); lb+recsize(1),tb+recsize(2);
 %% SETUP: DATA and Subject INFO
    
     [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'resting'); % subfunction
+    if exist(fname, 'file')
+        load(fname, 'rest');   
+    else
+        % add some task information
+        rest.version = 'FAST_fmri_wordgeneration_v1_11-09-2017';
+        rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
+        rest.subject = SID;
+        rest.session = SessID;
+        rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
+        rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
+        rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
+        rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+        rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
+    end
+%     rest.data = cell(1, 6);
+    s = str2double(SessID);
+    rest.data{s}.exp_starttime = datestr(clock, 0); % date-time: timestamp
+    question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
+    for i = 1:5
+        rest.data{s}.rating{1,i} = question_type{i};
+    end 
     
-    if exist(fname, 'file'), load(fname, 'out'); end
-      
-    % add some task information
-    rest.version = 'FAST_fmri_wordgeneration_v1_11-09-2017';
-    rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
-    rest.subject = SID;
-    rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-    rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
-    rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-    rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);    
-    rest.exp_starttime = datestr(clock, 0); % date-time: timestamp
-    
-    rest.data = cell(1, 6);
-  
     % initial save the data
-    save(rest.restingfile, 'rest');
+    save(rest.restingfile, 'rest', '-append');
 
 %% SETUP: Eyelink
 
@@ -249,11 +255,11 @@ try
     
     % gap between 's' key push and the first stimuli (disdaqs: data.disdaq_sec)
     % 4 seconds: "시작합니다..."
-    rest.data{SessID}.runscan_starttime = GetSecs; % run start timestamp
+    rest.data{s}.runscan_starttime = GetSecs; % run start timestamp
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.data{SessID}.runscan_starttime, 4);
+    waitsec_fromstarttime(rest.data{s}.runscan_starttime, 4);
     
     % 4 seconds: Blank
     Screen(theWindow,'FillRect',bgcolor, window_rect);
@@ -262,19 +268,20 @@ try
     %% EYELINK AND BIOPAC SETUP
     if USE_EYELINK
         Eyelink('StartRecording');
-        rest.data{SessID}.eyetracker_starttime = GetSecs; % eyelink timestamp
+        rest.data{s}.eyetracker_starttime = GetSecs; % eyelink timestamp
         Eyelink('Message','Resting Run start');
     end
         
     if USE_BIOPAC
-        rest.data{SessID}.biopac_starttime = GetSecs; % biopac timestamp
+        rest.data{s}.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(rest.data{SessID}.biopac_starttime, 1);
+        waitsec_fromstarttime(rest.data{s}.biopac_starttime, 1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
     %% RESTING
-    rest.data{SessID}.resting_starttime = GetSecs; 
+    waitsec_fromstarttime(rest.data{s}.runscan_starttime, 10);
+    rest.data{s}.resting_starttime = GetSecs; 
     if USE_EYELINK
         Eyelink('Message','Rest start');
     end
@@ -282,8 +289,8 @@ try
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, '+','center', 'center', white);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.data{SessID}.resting_starttime, duration*60);
-
+    waitsec_fromstarttime(rest.data{s}.resting_starttime, duration*60);
+    rest.data{s}.resting_endtime = GetSecs; 
        
     if USE_EYELINK
         Eyelink('Message','Rest end');
@@ -313,21 +320,21 @@ try
                 Screen('Flip', theWindow);
                 
                 if button(1)
-                    rest.data{SessID}.rating{barsize(5,j)} = rating(x, j);
+                    rest.data{s}.rating{2,barsize(5,j)} = rating(x, j);
                     display_survey(z, 1, 1, question_prompt,'resting');
                     Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
                     Screen('Flip', theWindow);
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
                     end
-                    
                     WaitSecs(.3);
                     break;
                 end
             end
         end
     end
-    WaitSecs(.1)
+    rest.data{s}.RT = GetSecs-rest.data{s}.resting_endtime;
+    WaitSecs(.1);
 
     %% RUN END MESSAGE & SAVE DATA
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
@@ -339,7 +346,7 @@ try
     end
     
     % save the data
-    save(rest.restingfile, 'rest');
+    save(rest.restingfile, 'rest', '-append');
     
     WaitSecs(2);
     
@@ -393,9 +400,9 @@ function rx = rating(x, j)
 global barsize recsize rec;
 % rx start from 0
 if mod(barsize(5,j),2) == 0     % Self, Vividness: 0<=rx<=1
-    rx = x-(rec(j,1)+(recsize(1)-barsize(1,j))/2)/barsize(1,j);
+    rx = (x-(rec(j,1)+(recsize(1)-barsize(1,j))/2))/barsize(1,j);
 else                            % Valence, Time, Safety/Threat: -1<=rx<=1
-    rx = x-(rec(j,1)+(recsize(1)-barsize(1,j))/2)/(2*barsize(1,j))-1;
+    rx = (x-(rec(j,1)+recsize(1)/2))/(barsize(1,j)/2);
 end
 
 end

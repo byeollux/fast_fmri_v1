@@ -22,7 +22,7 @@ savedir = fullfile(pwd, 'data');
 psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
 scriptdir = pwd;
 
-practice_repeat= 4;
+practice_repeat= 3;
 
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
@@ -51,8 +51,9 @@ bgcolor = 100;
 if testmode
     window_rect = [0 0 1728 972]; % in the test mode, use a little smaller screen
 else
-    window_rect = get(0, 'MonitorPositions'); % full screen
-    if size(window_rect,1)>1   % for Byeol's desk, when there are two moniter
+    window_rect1 = get(0, 'MonitorPositions'); % full screen
+%     window_rect = [ 0 0 window_rect1(3) window_rect1(4)];
+    if size(window_rect1,1)>1   % for Byeol's desk, when there are two moniter
         window_rect = window_rect(1,:);
     end
 end
@@ -61,8 +62,8 @@ W = window_rect(3); %width of screen
 H = window_rect(4); %height of screen
 textH = H/2.3;
 
-font = 'NanumBarunGothic';
-fontsize = 30;
+font = 'NanumGothic';
+fontsize = 25;
 
 white = 255;
 red = [189 0 38];
@@ -124,21 +125,23 @@ end
     HideCursor;
     
     %% PROMPT SETUP:
-    practice_prompt{1} = double('지금부터 스캐너에서 말한 각 단어 예시가 화면 위쪽에 순서대로 등장할 것입니다.');
-    practice_prompt{2} = double('몇 가지 질문에 나타날 텐데 연속된 두 단어 사이에 이어지는 맥락을 고려하여 각 질문에 솔직하게 응답해주세요.');
-    practice_prompt{3} = double('여기서 맥락이란 일반적인 단어 사이의 관계를 의미하는 것이 아니라,');
-    practice_prompt{4} = double('본인이 그 단어를 떠올렸을 당시에 느꼈던 개인적인 감정 혹은 생각을 의미합니다.');
-    practice_prompt{5} = double('한번 클릭한 것은 되돌릴 수 없으니 신중하게 클릭해주세요.');
-    practice_prompt{6} = double('\n잠시 연습을 해보겠습니다. 시작하려면 스페이스를 눌러주세요.');
+    practice_prompt{1} = double('지금부터 스캐너에서 말한 단어의 예시가 화면 위쪽에 순서대로 등장할 것입니다.');
+    practice_prompt{2} = double('단어와 함께 몇 가지 질문에 나타날 텐데');
+    practice_prompt{3} = double('연속된 두 단어 사이에 이어지는 맥락을 고려하여 각 질문에 솔직하게 응답해주세요.');
+    practice_prompt{4} = double('여기서 맥락이란 일반적인 단어 사이의 관계를 의미하는 것이 아니라,');
+    practice_prompt{5} = double('본인이 그 단어를 떠올렸을 당시에 느꼈던 개인적인 감정 혹은 생각을 의미합니다.');
+    practice_prompt{6} = double('한번 클릭한 것은 되돌릴 수 없으니 신중하게 클릭해주세요.');
+    practice_prompt{7} = double('\n잠시 연습을 해보겠습니다. 시작하려면 스페이스를 눌러주세요.');
     
     ready_prompt{1} = double('지금부터 스캐너에서 말한 각 단어가 화면 위쪽에 순서대로 등장할 것입니다.');
     ready_prompt{2} = double('연속된 두 단어 사이에 이어지는 맥락을 고려하여 각 질문에 솔직하게 응답해주세요.');
     ready_prompt{3} = double('여기서 맥락이란 일반적인 단어 사이의 관계를 의미하는 것이 아니라,');
     ready_prompt{4} = double('본인이 그 단어를 떠올렸을 당시에 느꼈던 개인적인 감정 혹은 생각을 의미합니다.');
+    ready_prompt{5} = double('한번 클릭한 것은 되돌릴 수 없으니 신중하게 클릭해주세요.');    
     ready_prompt{6} = double('');
-    ready_prompt{6} = double('설문은 총 6개의 세트로 이루어져 있으며 세트가 끝날 때마다 휴식을 취하셔도 좋습니다.');
-    ready_prompt{7} = double('약 2시간 정도 예상되는 설문이므로 마지막까지 집중해서 응답해주시기를 바랍니다.');
-    ready_prompt{8} = double('\n시작하려면 스페이스를 눌러주세요.');
+    ready_prompt{7} = double('설문은 총 6개의 세트로 이루어져 있으며 세트가 끝날 때마다 휴식을 취하셔도 좋습니다.');
+    ready_prompt{8} = double('약 2시간 정도 예상되는 설문이므로 마지막까지 집중해서 응답해주시기를 바랍니다.');
+    ready_prompt{9} = double('\n시작하려면 스페이스를 눌러주세요.');
     
     
     practice_end_prompt = double('잘하셨습니다. 질문이 있으신가요?\n\n press tab');
@@ -149,7 +152,7 @@ end
     %% PRACTICE 
     
     % viewing the practice prompt until click. 
-    pw = {'음악';'크리스마스';'고양이';'노랑';'레몬'};
+    pw = {'음악';'크리스마스';'고양이';'노랑'};
     seeds_i = 1;
     while (1)
         [~,~,keyCode] = KbCheck;
@@ -166,7 +169,7 @@ end
         Screen('Flip', theWindow);
     end
     
-    for target_i = 1:practice_repeat % loop through the response words (5)
+    for target_i = 1:practice_repeat % loop through the response words (3)
         z = randperm(6);
         barsize = barsizeO(:,z);
         for j=1:numel(z)

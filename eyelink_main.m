@@ -16,18 +16,18 @@ for i = 1:length(varargin)
                 try
                     
                     edfFile = sprintf('%s.EDF', savefilename);
+                    
                     % STEP 2
                     % Open a graphics window on the main screen
-                    
-                    [window1, wRect]=Screen('OpenWindow', whichScreen, 0,[],32,2); % wani: we don't need calibration
-                    Screen(window1,'BlendFunction',GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); % wani: we don't need calibration
+%                     [window1, wRect]=Screen('OpenWindow', whichScreen, 0,[],32,2); % wani: we don't need calibration
+%                     Screen(window1,'BlendFunction',GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); % wani: we don't need calibration
                     
                     % STEP 3
                     % Provide Eyelink with details about the graphics environment
                     % and perform some initializations. The information is returned
                     % in a structure that also contains useful defaults
                     % and control codes (e.g. tracker state bit and Eyelink key values).
-                    el=EyelinkInitDefaults(window1);
+                    el=EyelinkInitDefaults(window1); % need for calibration?
                     
                     % STEP 4
                     % Initialization of the connection with the Eyelink Gazetracker.
@@ -42,54 +42,53 @@ for i = 1:length(varargin)
                     end
                     
                     % check the version of the eye tracker & host software
-                    sw_version = 0;
-                    [v, vs]=Eyelink('GetTrackerVersion');
-                    fprintf('Running experiment on a ''%s''tracker.\n', vs );
-                    fprintf('tracker version v=%d\n', v);
+                    % sw_version = 0;
+%                     [v, vs]=Eyelink('GetTrackerVersion');    % do I need it?
+                    % fprintf('Running experiment on a ''%s''tracker.\n', vs );
+                    % fprintf('tracker version v=%d\n', v);
                     
                     % open file to record data to
-                    eye = Eyelink('Openfile', edfFile);
-                    
-                    if eye~=0
-                        fprintf('Cannot create EDF file ''%s'' ', edffilename);
-                        Eyelink('Shutdown');
-                        Screen('CloseAll');
-                        commandwindow;
-                        return;
-                    end
-                    
-                    Eyelink('command', 'add_file_preamble_text ''Recorded by EyelinkToolbox demo-experiment''');
-                    [width, height]=Screen('WindowSize', whichScreen); % wani: don't need calibration
+                    Eyelink('Openfile', edfFile);
+%                     
+%                     if eye~=0
+%                         fprintf('Cannot create EDF file ''%s'' ', edffilename);
+%                         Eyelink('Shutdown');
+%                         Screen('CloseAll');
+%                         commandwindow;
+%                         return;
+%                     end
+%                     
+%                     Eyelink('command', 'add_file_preamble_text ''Recorded by EyelinkToolbox demo-experiment''');  %?
+                    % [width, height]=Screen('WindowSize', whichScreen); % wani: don't need calibration
                     
                     % STEP 5
                     % SET UP TRACKER CONFIGURATION
                     % Setting the proper recording resolution, proper calibration type,
                     % as well as the data file content;
-                    Eyelink('command','screen_pixel_coords = %ld %ld %ld %ld', 0, 0, width-1, height-1); % wani: don't need calibration
-                    Eyelink('message', 'DISPLAY_COORDS %ld %ld %ld %ld', 0, 0, width-1, height-1); % wani: don't need calibration
+                    % Eyelink('command','screen_pixel_coords = %ld %ld %ld %ld', 0, 0, width-1, height-1); % wani: don't need calibration
+                    % Eyelink('message', 'DISPLAY_COORDS %ld %ld %ld %ld', 0, 0, width-1, height-1); % wani: don't need calibration
                     % set calibration type.
-                    Eyelink('command', 'calibration_type = HV9'); % wani: don't need calibration
+                    % Eyelink('command', 'calibration_type = HV9'); % wani: don't need calibration
                     % set parser (conservative saccade thresholds) 
                     
                     % set EDF file contents using the file_sample_data and
                     % file-event_filter commands
                     % set link data thtough link_sample_data and link_event_filter
                     Eyelink('command', 'file_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT');
-                    Eyelink('command', 'link_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT');
                     
                     % check the software version
                     % add "HTARGET" to record possible target data for EyeLink Remote
-                    if v>=4
-                        Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,HTARGET,GAZERES,STATUS,INPUT');
-                        Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,HTARGET,STATUS,INPUT');
-                    else
+%                     if v>=4
+%                         Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,HTARGET,GAZERES,STATUS,INPUT');
+%                         Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,HTARGET,STATUS,INPUT');
+%                     else
                         Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,GAZERES,STATUS,INPUT');
                         Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS,INPUT');
-                    end
+%                     end
                     
                     % allow to use the big button on the eyelink gamepad to accept the
                     % calibration/drift correction target
-                    Eyelink('command', 'button_function 5 "accept_target_fixation"');
+%                     Eyelink('command', 'button_function 5 "accept_target_fixation"');
                     
                     % make sure we're still connected.
                     if Eyelink('IsConnected')~=1 && dummymode == 0
@@ -105,28 +104,29 @@ for i = 1:length(varargin)
                     % STEP 6
                     % Calibrate the eye tracker
                     % setup the proper calibration foreground and background colors
-                    el.backgroundcolour = [125 125 125]; %changed to gray
-                    el.calibrationtargetcolour = [255 255 255];
+%                     el.backgroundcolour = [125 125 125]; %changed to gray
+%                     el.calibrationtargetcolour = [255 255 255];
                     
                     % parameters are in frequency, volume, and duration
                     % set the second value in each line to 0 to turn off the sound
-                    el.cal_target_beep=[600 0.5 0.05];
-                    el.drift_correction_target_beep=[600 0.5 0.05];
-                    el.calibration_failed_beep=[400 0.5 0.25];
-                    el.calibration_success_beep=[800 0.5 0.25];
-                    el.drift_correction_failed_beep=[400 0.5 0.25];
-                    el.drift_correction_success_beep=[800 0.5 0.25];
+%                     el.cal_target_beep=[600 0.5 0.05];
+%                     el.drift_correction_target_beep=[600 0.5 0.05];
+%                     el.calibration_failed_beep=[400 0.5 0.25];
+%                     el.calibration_success_beep=[800 0.5 0.25];
+%                     el.drift_correction_failed_beep=[400 0.5 0.25];
+%                     el.drift_correction_success_beep=[800 0.5 0.25];
                     
                     %Setting target size as recommended by Marcu at Eyelink
-                    el.calibrationtargetsize = 1.8;
-                    el.calibrationtargetwidth = 0.2;
+%                     el.calibrationtargetsize = 1.8;
+%                     el.calibrationtargetwidth = 0.2;
                     
                     % you must call this function to apply the changes from above
-                    EyelinkUpdateDefaults(el); % wani: don't need calibration
+                    % EyelinkUpdateDefaults(el); % wani: don't need calibration
                     
                     % Hide the mouse cursor;
-                    Screen('HideCursorHelper', window1); % wani: don't need calibration
+                    % Screen('HideCursorHelper', window1); % wani: don't need calibration
                     EyelinkDoTrackerSetup(el); % wani: don't need calibration
+                    EyelinkDoDriftCorrection(el); % add from Song
                     
                 catch exc
                     %this "catch" section executes in case of an error in the "try" section
@@ -144,20 +144,22 @@ for i = 1:length(varargin)
                 
                 Eyelink('Command', 'set_idle_mode');
                 WaitSecs(0.5);
+                Eyelink('StopRecording');
                 Eyelink('CloseFile');
+                Eyelink('ReceiveFile', edfFile, edfFile);
                 % download data file
-                try
-                    fprintf('Receiving data file ''%s''\n', edfFile );
-                    status=Eyelink('ReceiveFile');
-                    if status > 0
-                        fprintf('ReceiveFile status %d\n', status);
-                    end
-                    if 2==exist(edfFile, 'file')
-                        fprintf('Data file ''%s'' can be found in ''%s''\n', edfFile, pwd );
-                    end
-                catch
-                    fprintf('Problem receiving data file ''%s''\n', edfFile );
-                end
+%                 try
+%                     fprintf('Receiving data file ''%s''\n', edfFile );
+%                     status=Eyelink('ReceiveFile');
+%                     if status > 0
+%                         fprintf('ReceiveFile status %d\n', status);
+%                     end
+%                     if 2==exist(edfFile, 'file')
+%                         fprintf('Data file ''%s'' can be found in ''%s''\n', edfFile, pwd );
+%                     end
+%                 catch
+%                     fprintf('Problem receiving data file ''%s''\n', edfFile );
+%                 end
                 % STEP 9
                 % cleanup;
                 % function cleanup

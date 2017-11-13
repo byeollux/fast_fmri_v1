@@ -105,8 +105,8 @@ if ~practice_mode % if not practice mode, save the data
     survey.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
     survey.exp_starttime = datestr(clock, 0); % date-time: timestamp
     survey.dat_descript = {'nth of cell:Questions'; '1:Valence'; '2:Self-relevance'; '3:Time'; '4:Vividness'; '5:SafetyThreat'; '6:Bodymap'};
-    survey.dat_body_xy = [body_x body_y];
-    survey.dat = cell(size(words,1)-1, size(words,2));
+    survey.dat_body_xy = [body_x body_y];     % coordinate inside of body
+    survey.dat = cell(size(words,1)-1, size(words,2));  % 40x5 cell
     
     % initial save of trial sequence and data
     save(survey.surveyfile, 'words', 'survey');

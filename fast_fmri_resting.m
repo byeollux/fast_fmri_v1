@@ -69,7 +69,7 @@ function rest = fast_fmri_resting(duration, varargin)
 %
 
 %% default setting
-practice_mode = false;
+testmode = false;
 USE_EYELINK = false;
 USE_BIOPAC = false;
 savedir = fullfile(pwd, 'data');
@@ -88,8 +88,8 @@ for i = 1:length(varargin)
                 channel_n = 1;
                 biopac_channel = 0;
                 ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
-            case {'practice'}
-                practice_mode = true;
+            case {'test'}
+                testmode = true;
         end
     end
 end
@@ -199,9 +199,7 @@ try
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     question_prompt = double('방금 쉬는 과제를 하는 동안 자연스럽게 떠올린 생각에 대한 질문입니다.'); 
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
-    
-    %% TEST RECORDING... and play
-    
+       
     %% DISPLAY EXP START MESSAGE
     while (1)
         [~,~,keyCode] = KbCheck;

@@ -178,7 +178,6 @@ try
     %% PRACTICE RATING: Test trackball, Practice emotion rating
     
     % viewing the practice prompt until click. 
-    if practice_mode
         while (1)
             [~, ~, button] = GetMouse(theWindow);
             [~,~,keyCode] = KbCheck;
@@ -202,9 +201,6 @@ try
         Screen('Flip', theWindow);
         WaitSecs(2);
         
-        ShowCursor; %unhide mouse
-        Screen('CloseAll'); 
-    end
     
     %% DISPLAY PRESCAN MESSAGE
     while (1)

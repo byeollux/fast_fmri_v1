@@ -105,8 +105,8 @@ if ~practice_mode % if not practice mode, save the data
     survey.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
     survey.exp_starttime = datestr(clock, 0); % date-time: timestamp
     survey.dat_descript = {'nth of cell:Questions'; '1:Valence'; '2:Self-relevance'; '3:Time'; '4:Vividness'; '5:SafetyThreat'; '6:Bodymap'};
-    survey.dat_body_xy = [body_x body_y];
-    survey.dat = cell(size(words,1)-1, size(words,2));
+    survey.dat_body_xy = [body_x body_y];     % coordinate inside of body
+    survey.dat = cell(size(words,1)-1, size(words,2));  % 40x5 cell
     
     % initial save of trial sequence and data
     save(survey.surveyfile, 'words', 'survey');
@@ -124,15 +124,23 @@ end
     HideCursor;
     
     %% PROMPT SETUP:
-    ready_prompt{1} = double('지금부터 스캐너에서 말한 각 단어를 바로 직전에 말한 단어와');
-    ready_prompt{2} = double('이어지는 맥락을 고려하여 각 질문에 솔직하게 응답해주세요.');
+    practice_prompt{1} = double('지금부터 스캐너에서 말한 각 단어 예시가 화면 위쪽에 순서대로 등장할 것입니다.');
+    practice_prompt{2} = double('몇 가지 질문에 나타날 텐데 연속된 두 단어 사이에 이어지는 맥락을 고려하여 각 질문에 솔직하게 응답해주세요.');
+    practice_prompt{3} = double('여기서 맥락이란 일반적인 단어 사이의 관계를 의미하는 것이 아니라,');
+    practice_prompt{4} = double('본인이 그 단어를 떠올렸을 당시에 느꼈던 개인적인 감정 혹은 생각을 의미합니다.');
+    practice_prompt{5} = double('한번 클릭한 것은 되돌릴 수 없으니 신중하게 클릭해주세요.');
+    practice_prompt{6} = double('\n잠시 연습을 해보겠습니다. 시작하려면 스페이스를 눌러주세요.');
+    
+    ready_prompt{1} = double('지금부터 스캐너에서 말한 각 단어가 화면 위쪽에 순서대로 등장할 것입니다.');
+    ready_prompt{2} = double('연속된 두 단어 사이에 이어지는 맥락을 고려하여 각 질문에 솔직하게 응답해주세요.');
     ready_prompt{3} = double('여기서 맥락이란 일반적인 단어 사이의 관계를 의미하는 것이 아니라,');
     ready_prompt{4} = double('본인이 그 단어를 떠올렸을 당시에 느꼈던 개인적인 감정 혹은 생각을 의미합니다.');
-    ready_prompt{5} = double('설문은 총 6개의 세트로 이루어져 있으며 세트가 끝날 때마다 휴식을 취하셔도 좋습니다.');
-    ready_prompt{6} = double('약 2시간 정도 예상되는 설문이므로 마지막까지 집중해서 응답해주시기를 바랍니다.');
-    ready_prompt{7} = double('\n시작하려면 스페이스를 눌러주세요.');
-    ready_prompt{8} = double('잠시 연습을 해보겠습니다. 시작하려면 스페이스를 눌러주세요.');
-
+    ready_prompt{6} = double('');
+    ready_prompt{6} = double('설문은 총 6개의 세트로 이루어져 있으며 세트가 끝날 때마다 휴식을 취하셔도 좋습니다.');
+    ready_prompt{7} = double('약 2시간 정도 예상되는 설문이므로 마지막까지 집중해서 응답해주시기를 바랍니다.');
+    ready_prompt{8} = double('\n시작하려면 스페이스를 눌러주세요.');
+    
+    
     practice_end_prompt = double('잘하셨습니다. 질문이 있으신가요?\n\n press tab');
     run_end_prompt = double('잘하셨습니다. 잠시 휴식을 가지셔도 됩니다.\n다음 세트를 시작할 준비가 되면 스페이스를 눌러주세요.');
 
@@ -152,11 +160,9 @@ end
         end
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
         Screen('TextSize', theWindow, fontsize);
-        for i = 1:4
-            DrawFormattedText(theWindow, ready_prompt{i},'center', H*5/12-40*(2-i), white);
+        for i = 1:numel(practice_prompt)
+            DrawFormattedText(theWindow, practice_prompt{i},'center', H*5/12-40*(2-i), white);
         end
-        DrawFormattedText(theWindow, ready_prompt{8},'center', H*5/12+150, white);
-
         Screen('Flip', theWindow);
     end
     
@@ -275,8 +281,8 @@ end
         end
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
         Screen('TextSize', theWindow, fontsize);
-        for i = 1:7
-            DrawFormattedText(theWindow, ready_prompt{i},'center', H*5/12-40*(2-i), white);
+        for i = 1:numel(ready_prompt)
+            DrawFormattedText(theWindow, ready_prompt{i},'center', H/3-40*(2-i), white);
         end
         Screen('Flip', theWindow);
     end

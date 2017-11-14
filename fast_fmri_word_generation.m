@@ -160,7 +160,7 @@ if ~practice_mode % if not practice mode, save the data
     out.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     out.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
     out.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    out.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
+    out.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
     out.exp_starttime = datestr(clock, 0); % date-time: timestamp
     out.seed = seed; % date-time: timestamp
     

@@ -168,11 +168,10 @@ for i=1:6       % 3 scales for one line, 18 scales
 end
 
 %% SETUP: DATA and Subject INFO
-   
-    [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'resting'); % subfunction
-    if exist(fname, 'file')
-        load(fname, 'rest');   
-    end
+    [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'word'); % subfunction
+    
+    if exist(fname, 'file'), load(fname, 'rest'); end
+
     % add some task information
     rest.version = 'FAST_fmri_wordgeneration_v1_11-09-2017';
     rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
@@ -182,18 +181,15 @@ end
     rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
     rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
-    
-    s = str2double(SessID);
-    rest.data{s}.exp_starttime = datestr(clock, 0); % date-time: timestamp
+    rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
+    rest.exp_starttime = datestr(clock, 0); % date-time: timestamp
     question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
     for i = 1:5
-        rest.data{s}.rating{1,i} = question_type{i};
+        rest.data.rating{1,i} = question_type{i};
     end 
     
     % initial save the data
-    dir = rest.restingfile;
-    save(dir, 'rest', '-append');
+    save(rest.restingfile, 'rest');
 
 %% SETUP: Eyelink
 
@@ -282,11 +278,11 @@ try
     
     % gap between 's' key push and the first stimuli (disdaqs: data.disdaq_sec)
     % 4 seconds: "시작합니다..."
-    rest.data{s}.runscan_starttime = GetSecs; % run start timestamp
+    rest.runscan_starttime = GetSecs; % run start timestamp
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.data{s}.runscan_starttime, 4);
+    waitsec_fromstarttime(rest.runscan_starttime, 4);
     
     % 4 seconds: Blank
     Screen(theWindow,'FillRect',bgcolor, window_rect);
@@ -295,20 +291,20 @@ try
     %% EYELINK AND BIOPAC SETUP
     if USE_EYELINK
         Eyelink('StartRecording');
-        rest.data{s}.eyetracker_starttime = GetSecs; % eyelink timestamp
+        rest.eyetracker_starttime = GetSecs; % eyelink timestamp
         Eyelink('Message','Resting Run start');
     end
         
     if USE_BIOPAC
-        rest.data{s}.biopac_starttime = GetSecs; % biopac timestamp
+        rest.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(rest.data{s}.biopac_starttime, 1);
+        waitsec_fromstarttime(rest.biopac_starttime, 1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
     %% RESTING
-    waitsec_fromstarttime(rest.data{s}.runscan_starttime, 10);
-    rest.data{s}.resting_starttime = GetSecs; 
+    waitsec_fromstarttime(rest.runscan_starttime, 10);
+    rest.resting_starttime = GetSecs; 
     if USE_EYELINK
         Eyelink('Message','Rest start');
     end
@@ -316,8 +312,8 @@ try
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, '+','center', 'center', white);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.data{s}.resting_starttime, duration*60);
-    rest.data{s}.resting_endtime = GetSecs; 
+    waitsec_fromstarttime(rest.resting_starttime, duration*60);
+    rest.resting_endtime = GetSecs; 
        
     if USE_EYELINK
         Eyelink('Message','Rest end');
@@ -345,7 +341,7 @@ try
                 Screen('Flip', theWindow);
                 
                 if button(1)
-                    rest.data{s}.rating{2,barsize(5,j)} = rating(x, j);
+                    rest.rating{2,barsize(5,j)} = rating(x, j);
                     display_survey(z, 1, 1, question_prompt,'resting');
                     Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
                     Screen('Flip', theWindow);
@@ -358,7 +354,7 @@ try
             end
         end
     end
-    rest.data{s}.RT = GetSecs-rest.data{s}.resting_endtime;
+    rest.RT = GetSecs-rest.resting_endtime;
     WaitSecs(.1);
 
     %% RUN END MESSAGE & SAVE DATA

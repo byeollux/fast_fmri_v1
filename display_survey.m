@@ -82,7 +82,7 @@ title = title(:,z);
 
 %% locations of the two words
 if ~resting
-    interval = 100;
+    interval = 150;
     Screen('TextSize', theWindow, 30);
     response_W(1) = Screen(theWindow, 'DrawText', double(words{target_i,seeds_i}), 0, 0);
     response_W(2) = Screen(theWindow, 'DrawText', double(words{target_i+1,seeds_i}), 0, 0);

@@ -54,7 +54,7 @@ else
     window_rect1 = get(0, 'MonitorPositions'); % full screen
 %     window_rect = [ 0 0 window_rect1(3) window_rect1(4)];
     if size(window_rect1,1)>1   % for Byeol's desk, when there are two moniter
-        window_rect = window_rect(1,:);
+        window_rect = window_rect1(1,:);
     end
 end
 

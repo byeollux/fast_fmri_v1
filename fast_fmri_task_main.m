@@ -77,7 +77,7 @@ cd(scriptdir);
 %% SETUP: global
 global theWindow W H; % window property
 global white red orange blue bgcolor; % color
-global fontsize window_rect lb rb tb bb anchor_xl anchor_xr anchor_yu anchor_yd scale_H; % rating scale
+global fontsize window_rect lb rb tb bb ; % rating scale
 
 %% SETUP: Screen
 

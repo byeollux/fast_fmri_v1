@@ -97,7 +97,7 @@ end
 %% SETUP: global
 global theWindow W H; % window property
 global white red orange bgcolor; % color
-global fontsize window_rect lb tb recsize rec barsize; % rating scale
+global fontsize window_rect lb tb recsize rec barsize linexy; % rating scale
 
 %% SETUP: Screen
 
@@ -105,24 +105,24 @@ addpath(genpath(psychtoolboxdir));
 
 bgcolor = 100;
 
-if testmode
-    window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
-else
-    % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
-    % screen, these are nessecary and different from Wani's version.
-    screens = Screen('Screens');
-    window_num = screens(end);
-    Screen('Preference', 'SkipSyncTests', 1);
-    window_info = Screen('Resolution', window_num);
-    window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
-end
+% if testmode
+    window_rect = [0 0 1200 800]; % in the test mode, use a little smaller screen
+% else
+%     % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
+%     % screen, these are nessecary and different from Wani's version.
+%     screens = Screen('Screens');
+%     window_num = screens(end);
+%     Screen('Preference', 'SkipSyncTests', 1);
+%     window_info = Screen('Resolution', window_num);
+%     window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
+% end
 
 
 W = window_rect(3); % width of screen
 H = window_rect(4); % height of screen
 textH = H/2.3;
 
-font = 'NanumGothic';
+font = 'NanumBarunGothic';
 fontsize = 30;
 
 white = 255;
@@ -139,25 +139,51 @@ barsize=[W*340/1280, W*180/1280, W*340/1280, W*180/1280, W*340/1280, 0;
 rec=[lb,tb; lb+recsize(1),tb; lb,tb+recsize(2); lb+recsize(1),tb+recsize(2);
     lb,tb+2*recsize(2); lb+recsize(1),tb+2*recsize(2)]; %6°³ »ç°¢ÇüÀÇ ¿ÞÂÊ À§ ²ÀÁþÁ¡ÀÇ ÁÂÇ¥
 
+%% Coordinates for lines
+z = randperm(6);
+barsize = barsize(:,z);
+
+linexy = zeros(2,48);
+
+for i=1:6       % 6 lines
+    linexy(1,2*i-1)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
+    linexy(1,2*i)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
+    linexy(2,2*i-1) = rec(i,2)+recsize(2)/2;
+    linexy(2,2*i) = rec(i,2)+recsize(2)/2;
+end
+
+for i=1:6       % 3 scales for one line, 18 scales 
+    linexy(1,6*(i+1)+1)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
+    linexy(1,6*(i+1)+2)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
+    linexy(1,6*(i+1)+3)= rec(i,1)+recsize(1)/2;
+    linexy(1,6*(i+1)+4)= rec(i,1)+recsize(1)/2;
+    linexy(1,6*(i+1)+5)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
+    linexy(1,6*(i+1)+6)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
+    linexy(2,6*(i+1)+1)= rec(i,2)+recsize(2)/2-barsize(2,i)/2;
+    linexy(2,6*(i+1)+2)= rec(i,2)+recsize(2)/2+barsize(2,i)/2;
+    linexy(2,6*(i+1)+3)= rec(i,2)+recsize(2)/2-barsize(3,i)/2;
+    linexy(2,6*(i+1)+4)= rec(i,2)+recsize(2)/2+barsize(3,i)/2;
+    linexy(2,6*(i+1)+5)= rec(i,2)+recsize(2)/2-barsize(4,i)/2;
+    linexy(2,6*(i+1)+6)= rec(i,2)+recsize(2)/2+barsize(4,i)/2;
+end
 
 %% SETUP: DATA and Subject INFO
    
     [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'resting'); % subfunction
     if exist(fname, 'file')
         load(fname, 'rest');   
-    else
-        % add some task information
-        rest.version = 'FAST_fmri_wordgeneration_v1_11-09-2017';
-        rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
-        rest.subject = SID;
-        rest.session = SessID;
-        rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-        rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
-        rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-        rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-        rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
     end
-%     rest.data = cell(1, 6);
+    % add some task information
+    rest.version = 'FAST_fmri_wordgeneration_v1_11-09-2017';
+    rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
+    rest.subject = SID;
+    rest.session = SessID;
+    rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
+    rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
+    rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
+    rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+    rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
+    
     s = str2double(SessID);
     rest.data{s}.exp_starttime = datestr(clock, 0); % date-time: timestamp
     question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
@@ -166,7 +192,8 @@ rec=[lb,tb; lb+recsize(1),tb; lb,tb+recsize(2); lb+recsize(1),tb+recsize(2);
     end 
     
     % initial save the data
-    save(rest.restingfile, 'rest', '-append');
+    dir = rest.restingfile;
+    save(dir, 'rest', '-append');
 
 %% SETUP: Eyelink
 
@@ -297,8 +324,6 @@ try
     end
     
     %% QESTION
-    z = randperm(6);
-    barsize = barsize(:,z);
 
     for j=1:numel(z)
         if ~barsize(5,j) == 0
@@ -343,10 +368,11 @@ try
     Screen('Flip', theWindow);
     if USE_EYELINK
         Eyelink('Message','Resting Run end');
+        eyelink_main(edf_filename, 'Shutdown');
     end
     
     % save the data
-    save(rest.restingfile, 'rest', '-append');
+    save(dir, 'rest', '-append');
     
     WaitSecs(2);
     

@@ -67,7 +67,7 @@ load(dat_file);
 load(save_file);
 
 %% Response_N
-response_n = 1:numel(out.audiodata); % out.audiodata = 1x40
+% response_n = 1:numel(out.audiodata); % out.audiodata = 1x40
 
 for i = 1:length(varargin)
     if ischar(varargin{i})

@@ -349,7 +349,7 @@ try
     if USE_EYELINK
         Eyelink('StartRecording');
         out.eyetracker_starttime = GetSecs; % eyelink timestamp
-        Eyelink('Message','WG starttime');
+        Eyelink('Message','WG start');
     end
         
     if USE_BIOPAC

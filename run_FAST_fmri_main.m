@@ -1,7 +1,7 @@
 
 %% Sess 1
     %% Resting & Word Generation
-    fast_fmri_resting(0.01, 'test');       % practice resting
+    fast_fmri_resting(0.01,'test');       % practice resting
     % fast_fmri_resting(6);       % 6 min resting
     fast_fmri_word_generation(seeds_rand{1},'test');
     % fast_fmri_resting(2)        % 2 min resting

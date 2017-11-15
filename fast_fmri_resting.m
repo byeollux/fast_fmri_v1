@@ -1,23 +1,20 @@
 function rest = fast_fmri_resting(duration, varargin)
 
-% Run a word generation step of Free Association Semantic Task with the fMRI scanning. 
+% Run a resting state of Free Association Semantic Task with the fMRI scanning. 
 %
 % :Usage:
 % ::
 %
-%    out = fast_fmri_word_generation(seed, varargin)
+%    rest = fast_fmri_resting(duration, varargin)
 %
 %
 % :Inputs:
 %
-%   **seed:**
-%        One word as string, e.g., seed = '나무';
+%   **duration:**
+%        duration of resting, minute;
 %
 %
 % :Optional Inputs: Enter keyword followed by variable with values
-%
-%   **'practice':**
-%        This mode plays only 5 beeps, and do not record the responses.
 %
 %   **'eye', 'eyetrack':**
 %        This will turn on the eye tracker, and record eye movement and pupil size. 
@@ -29,17 +26,8 @@ function rest = fast_fmri_resting(duration, varargin)
 %        You can specify the directory where you save the data.
 %        The default is the /data of the current directory.
 %
-%   **'test':**
-%        This will give you a smaller screen to test your code.
-%
-%   **'repeat':**
-%        You can specify the number of repeats.
-%
 %   **'psychtoolbox':**
 %        You can specify the psychtoolbox directory. 
-%
-%   **'savewav':**
-%        You can choose to save or not to save wav files.
 %
 %
 % :Output:
@@ -63,9 +51,7 @@ function rest = fast_fmri_resting(duration, varargin)
 % ..
 %
 %    If you have any questions, please email to: 
-%
-%          Byeol Kim (roadndream@naver.com) or
-%          Wani Woo (waniwoo@skku.edu)
+%          Byeol Kim (roadndream@naver.com)
 %
 
 %% default setting
@@ -94,6 +80,30 @@ for i = 1:length(varargin)
     end
 end
 
+%% SETUP: DATA and Subject INFO
+    [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'word'); % subfunction
+    
+    if exist(fname, 'file'), load(fname, 'rest'); end
+
+    % add some task information
+    rest.version = 'FAST_fmri_wordgeneration_v1_11-15-2017';
+    rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
+    rest.subject = SID;
+    rest.session = SessID;
+    rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
+    rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
+    rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
+    rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+    rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
+    rest.exp_starttime = datestr(clock, 0); % date-time: timestamp
+    question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
+    for i = 1:5
+        rest.rating{1,i} = question_type{i};
+    end 
+    
+    % initial save the data
+    save(rest.restingfile, 'rest');
+
 %% SETUP: global
 global theWindow W H; % window property
 global white red orange bgcolor; % color
@@ -105,24 +115,24 @@ addpath(genpath(psychtoolboxdir));
 
 bgcolor = 100;
 
-% if testmode
+if testmode
     window_rect = [0 0 1200 800]; % in the test mode, use a little smaller screen
-% else
-%     % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
-%     % screen, these are nessecary and different from Wani's version.
-%     screens = Screen('Screens');
-%     window_num = screens(end);
-%     Screen('Preference', 'SkipSyncTests', 1);
-%     window_info = Screen('Resolution', window_num);
-%     window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
-% end
+else
+    % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
+    % screen, these are nessecary and different from Wani's version.
+    screens = Screen('Screens');
+    window_num = screens(end);
+    Screen('Preference', 'SkipSyncTests', 1);
+    window_info = Screen('Resolution', window_num);
+    window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
+end
 
 
 W = window_rect(3); % width of screen
 H = window_rect(4); % height of screen
 textH = H/2.3;
 
-font = 'NanumBarunGothic';
+font = 'NanumGothic';
 fontsize = 30;
 
 white = 255;
@@ -167,34 +177,18 @@ for i=1:6       % 3 scales for one line, 18 scales
     linexy(2,6*(i+1)+6)= rec(i,2)+recsize(2)/2+barsize(4,i)/2;
 end
 
-%% SETUP: DATA and Subject INFO
-    [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'word'); % subfunction
-    
-    if exist(fname, 'file'), load(fname, 'rest'); end
-
-    % add some task information
-    rest.version = 'FAST_fmri_wordgeneration_v1_11-09-2017';
-    rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
-    rest.subject = SID;
-    rest.session = SessID;
-    rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-    rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
-    rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-    rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
-    rest.exp_starttime = datestr(clock, 0); % date-time: timestamp
-    question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
-    for i = 1:5
-        rest.data.rating{1,i} = question_type{i};
-    end 
-    
-    % initial save the data
-    save(rest.restingfile, 'rest');
+    %% START: Screen
+	theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
+    Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
+    Screen('TextFont', theWindow, font);
+    Screen('TextSize', theWindow, fontsize);
+    HideCursor;
 
 %% SETUP: Eyelink
 
 if USE_EYELINK
-    edf_filename = ['YRest_sub' SID '_sess' SessID];
+    edf_filename = ['YWG_' SID '_' SessID]; % name should be equal or less than 8
+    edfFile = sprintf('%s.EDF', edf_filename);
     eyelink_main(edf_filename, 'Init');
     
     status = Eyelink('Initialize');
@@ -208,12 +202,6 @@ end
 %% TAST START: ===========================================================
 
 try
-    %% START: Screen
-	theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
-    Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
-    Screen('TextFont', theWindow, font);
-    Screen('TextSize', theWindow, fontsize);
-    HideCursor;
     
     %% PROMPT SETUP:
     exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
@@ -288,7 +276,7 @@ try
     Screen(theWindow,'FillRect',bgcolor, window_rect);
     Screen('Flip', theWindow);
                 
-    %% EYELINK AND BIOPAC SETUP
+    %% EYELINK AND BIOPAC START
     if USE_EYELINK
         Eyelink('StartRecording');
         rest.eyetracker_starttime = GetSecs; % eyelink timestamp
@@ -368,7 +356,7 @@ try
     end
     
     % save the data
-    save(dir, 'rest', '-append');
+    save(rest.restingfile, 'rest');
     
     WaitSecs(2);
     

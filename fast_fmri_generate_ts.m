@@ -1,4 +1,4 @@
-function ts = fast_fmri_generate_ts
+function [ts, isi_iti] = fast_fmri_generate_ts
 % 
 % function ts = fast_fmri_generate_ts
 % 

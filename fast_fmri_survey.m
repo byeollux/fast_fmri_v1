@@ -52,10 +52,10 @@ if testmode
     window_rect = [0 0 1728 972]; % in the test mode, use a little smaller screen
 else
     window_rect1 = get(0, 'MonitorPositions'); % full screen
-%     window_rect = [ 0 0 window_rect1(3) window_rect1(4)];
-    if size(window_rect1,1)>1   % for Byeol's desk, when there are two moniter
-        window_rect = window_rect1(1,:);
-    end
+    window_rect = [ 0 0 window_rect1(3) window_rect1(4)];
+%     if size(window_rect1,1)>1   % for Byeol's desk, when there are two moniter
+%         window_rect = window_rect1(1,:);
+%     end
 end
 
 W = window_rect(3); %width of screen
@@ -105,12 +105,13 @@ if ~practice_mode % if not practice mode, save the data
     survey.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
     survey.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
     survey.exp_starttime = datestr(clock, 0); % date-time: timestamp
-    survey.dat_descript = {'nth of cell:Questions'; '1:Valence'; '2:Self-relevance'; '3:Time'; '4:Vividness'; '5:SafetyThreat'; '6:Bodymap'};
-    survey.dat_body_xy = [body_x body_y];     % coordinate inside of body
+    survey.dat_descript = {'survey.dat{target_i,seeds_i}';'6 Questions'; '1:Valence'; '2:Self-relevance'; '3:Time'; '4:Vividness'; '5:SafetyThreat'; '6:Bodymap'};
+    survey.body_xy = [body_x body_y];     % coordinate inside of body
     survey.dat = cell(size(words,1)-1, size(words,2));  % 40x5 cell
-    
+    survey.words = words;
+
     % initial save of trial sequence and data
-    save(survey.surveyfile, 'words', 'survey');
+    save(survey.surveyfile, 'survey');
     
 end
 
@@ -150,129 +151,130 @@ end
     exp_end_prompt = double('설문을 모두 마치셨습니다. 감사합니다!');
 
     %% PRACTICE 
-    
-    % viewing the practice prompt until click. 
-    pw = {'음악';'크리스마스';'고양이';'노랑'};
-    seeds_i = 1;
-    while (1)
-        [~,~,keyCode] = KbCheck;
-        if keyCode(KbName('space'))==1
-            break;
-        elseif keyCode(KbName('q'))==1
-            abort_experiment('manual');
-        end
-        Screen(theWindow, 'FillRect', bgcolor, window_rect);
-        Screen('TextSize', theWindow, fontsize);
-        for i = 1:numel(practice_prompt)
-            DrawFormattedText(theWindow, practice_prompt{i},'center', H*5/12-40*(2-i), white);
-        end
-        Screen('Flip', theWindow);
-    end
-    
-    for target_i = 1:practice_repeat % loop through the response words (3)
-        z = randperm(6);
-        barsize = barsizeO(:,z);
-        for j=1:numel(z)
-            if ~barsize(5,j) == 0
-                if mod(barsize(5,j),2) ==0
-                    SetMouse(rec(j,1)+(recsize(1)-barsize(1,j))/2, rec(j,2)+recsize(2)/2);
-                else SetMouse(rec(j,1)+recsize(1)/2, rec(j,2)+recsize(2)/2);
-                end
-                while(1)
-                    % Track Mouse coordinate
-                    [mx, my, button] = GetMouse(theWindow);
-                    
-                    x = mx;
-                    y = rec(j,2)+recsize(2)/2;
-                    if x < rec(j,1)+(recsize(1)-barsize(1,j))/2, x = rec(j,1)+(recsize(1)-barsize(1,j))/2;
-                    elseif x > rec(j,1)+(recsize(1)+barsize(1,j))/2, x = rec(j,1)+(recsize(1)+barsize(1,j))/2;
-                    end
-                    display_survey(z, seeds_i, target_i, pw,'practice1');
-                    Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
-                    Screen('Flip', theWindow);
-                    
-                    if button(1)
-                        display_survey(z, seeds_i, target_i, pw,'practice1');
-                        Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
-                        Screen('Flip', theWindow);
-                        WaitSecs(.3);
-                        break;
-                    end
-                end
-            end
-        end
-        WaitSecs(.1)
-        
-        % bodymap
-        SetMouse(W*8.6/10, H/2); % set mouse at the center of the body
-        rec_i = 0;
-        survey.practice.rating_red = [];
-        survey.practice.rating_blue = [];
-        
-        zc = randperm(2);
-        if zc(1)==1
-            color = red;  color_code = 1;
-        else color = blue; color_code = 2;   end
-        
-        while(1)
-            display_survey(z, seeds_i, target_i, pw,'practice2');
-            
-            % Track Mouse coordinate
-            [x, y, button] = GetMouse(theWindow);
+    if numel(start_line) == 1  % if restart, skip the practice
+        % viewing the practice prompt until click.
+        pw = {'음악';'크리스마스';'고양이';'노랑'};
+        seeds_i = 1;
+        while (1)
             [~,~,keyCode] = KbCheck;
-            
-            if keyCode(KbName('r'))==1
-                color = red;
-                color_code = 1;
-                keyCode(KbName('r')) = 0;
-            elseif keyCode(KbName('b'))==1
-                color = blue;
-                color_code = 2;
-                keyCode(KbName('b')) = 0;
+            if keyCode(KbName('space'))==1
+                break;
+            elseif keyCode(KbName('q'))==1
+                abort_experiment('manual');
             end
-            
-            % current location
-            Screen('DrawDots', theWindow, [x;y], 6, color, [0 0], 1);
-            
-            % color the previous clicked regions
-            if ~isempty(survey.practice.rating_red)
-                Screen('DrawDots', theWindow, survey.practice.rating_red', 6, red, [0 0], 1);
-            end
-            if ~isempty(survey.practice.rating_blue)
-                Screen('DrawDots', theWindow, survey.practice.rating_blue', 6, blue, [0 0], 1);
+            Screen(theWindow, 'FillRect', bgcolor, window_rect);
+            Screen('TextSize', theWindow, fontsize);
+            for i = 1:numel(practice_prompt)
+                DrawFormattedText(theWindow, practice_prompt{i},'center', H*5/12-40*(2-i), white);
             end
             Screen('Flip', theWindow);
-            
-            % Sort the regions of red and blue
-            if button(1) && color_code == 1
-                survey.practice.rating_red = [survey.practice.rating_red; [x y]];
-            elseif button(1) && color_code == 2
-                survey.practice.rating_blue = [survey.practice.rating_blue; [x y]];
+        end
+        
+        for target_i = 1:practice_repeat % loop through the response words (3)
+            z = randperm(6);
+            barsize = barsizeO(:,z);
+            for j=1:numel(z)
+                if ~barsize(5,j) == 0
+                    if mod(barsize(5,j),2) ==0
+                        SetMouse(rec(j,1)+(recsize(1)-barsize(1,j))/2, rec(j,2)+recsize(2)/2);
+                    else SetMouse(rec(j,1)+recsize(1)/2, rec(j,2)+recsize(2)/2);
+                    end
+                    while(1)
+                        % Track Mouse coordinate
+                        [mx, my, button] = GetMouse(theWindow);
+                        
+                        x = mx;
+                        y = rec(j,2)+recsize(2)/2;
+                        if x < rec(j,1)+(recsize(1)-barsize(1,j))/2, x = rec(j,1)+(recsize(1)-barsize(1,j))/2;
+                        elseif x > rec(j,1)+(recsize(1)+barsize(1,j))/2, x = rec(j,1)+(recsize(1)+barsize(1,j))/2;
+                        end
+                        display_survey(z, seeds_i, target_i, pw,'practice1');
+                        Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
+                        Screen('Flip', theWindow);
+                        
+                        if button(1)
+                            display_survey(z, seeds_i, target_i, pw,'practice1');
+                            Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
+                            Screen('Flip', theWindow);
+                            WaitSecs(.3);
+                            break;
+                        end
+                    end
+                end
             end
+            WaitSecs(.1)
             
-            if keyCode(KbName('a'))==1
-                Screen(theWindow, 'FillRect', bgcolor, window_rect);
+            % bodymap
+            SetMouse(W*8.6/10, H/2); % set mouse at the center of the body
+            rec_i = 0;
+            survey.practice.rating_red = [];
+            survey.practice.rating_blue = [];
+            
+            zc = randperm(2);
+            if zc(1)==1
+                color = red;  color_code = 1;
+            else color = blue; color_code = 2;   end
+            
+            while(1)
+                display_survey(z, seeds_i, target_i, pw,'practice2');
+                
+                % Track Mouse coordinate
+                [x, y, button] = GetMouse(theWindow);
+                [~,~,keyCode] = KbCheck;
+                
+                if keyCode(KbName('r'))==1
+                    color = red;
+                    color_code = 1;
+                    keyCode(KbName('r')) = 0;
+                elseif keyCode(KbName('b'))==1
+                    color = blue;
+                    color_code = 2;
+                    keyCode(KbName('b')) = 0;
+                end
+                
+                % current location
+                Screen('DrawDots', theWindow, [x;y], 6, color, [0 0], 1);
+                
+                % color the previous clicked regions
+                if ~isempty(survey.practice.rating_red)
+                    Screen('DrawDots', theWindow, survey.practice.rating_red', 6, red, [0 0], 1);
+                end
+                if ~isempty(survey.practice.rating_blue)
+                    Screen('DrawDots', theWindow, survey.practice.rating_blue', 6, blue, [0 0], 1);
+                end
                 Screen('Flip', theWindow);
-                WaitSecs(.5);
-                break;
+                
+                % Sort the regions of red and blue
+                if button(1) && color_code == 1
+                    survey.practice.rating_red = [survey.practice.rating_red; [x y]];
+                elseif button(1) && color_code == 2
+                    survey.practice.rating_blue = [survey.practice.rating_blue; [x y]];
+                end
+                
+                if keyCode(KbName('a'))==1
+                    Screen(theWindow, 'FillRect', bgcolor, window_rect);
+                    Screen('Flip', theWindow);
+                    WaitSecs(.5);
+                    break;
+                end
             end
         end
-    end
-    
-    % Practice End prompt
-    while (1)
-        [~,~,keyCode] = KbCheck;
-        if keyCode(KbName('tab'))==1
-            break;
-        elseif keyCode(KbName('q'))==1
-            abort_experiment('manual');
+        
+        % Practice End prompt
+        while (1)
+            [~,~,keyCode] = KbCheck;
+            if keyCode(KbName('tab'))==1
+                break;
+            elseif keyCode(KbName('q'))==1
+                abort_experiment('manual');
+            end
+            Screen(theWindow, 'FillRect', bgcolor, window_rect);
+            Screen('TextSize', theWindow, fontsize);
+            DrawFormattedText(theWindow, practice_end_prompt, 'center', 'center', white, [], [], [], 1.5);
+            Screen('Flip', theWindow);
         end
-        Screen(theWindow, 'FillRect', bgcolor, window_rect);
-        Screen('TextSize', theWindow, fontsize);
-        DrawFormattedText(theWindow, practice_end_prompt, 'center', 'center', white, [], [], [], 1.5);
-        Screen('Flip', theWindow);
+        
     end
-    
     %% Main function: show 2 words
     
     while (1)
@@ -518,9 +520,9 @@ function rx = rating(x, j)
 global barsize recsize rec;
 % rx start from 0
 if mod(barsize(5,j),2) == 0     % Self, Vividness: 0<=rx<=1
-    rx = x-(rec(j,1)+(recsize(1)-barsize(1,j))/2)/barsize(1,j);
+    rx = (x-(rec(j,1)+(recsize(1)-barsize(1,j))/2))/barsize(1,j);
 else                            % Valence, Time, Safety/Threat: -1<=rx<=1
-    rx = x-(rec(j,1)+(recsize(1)-barsize(1,j))/2)/(2*barsize(1,j))-1;
+    rx = (x-(rec(j,1)+recsize(1)/2))/(barsize(1,j)/2);
 end
 
 end

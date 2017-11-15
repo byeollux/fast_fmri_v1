@@ -8,12 +8,12 @@
 
     %% Transcribe
     fast_fmri_transcribe_responses('nosound') % while running fast_fmri_word_generation
-    fast_fmri_transcribe_responses('only_na') % after running fast_fmri_word_generation
+    fast_fmri_transcribe_responses('only_na') % after runnin g fast_fmri_word_generation
 
     %% Thinking and Rating
-    ts = fast_fmri_generate_ts;
-    fast_fmri_task_main(ts,'practice', 'test');
-    fast_fmri_task_main(ts,'test');
+    [ts, isi_iti] = fast_fmri_generate_ts;
+    fast_fmri_task_main(ts, isi_iti);
+    fast_fmri_task_main(ts, isi_iti, 'test');
 
     %% Whole words list & Survey
     words = fast_fmri_wholewords;

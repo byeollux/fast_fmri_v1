@@ -135,7 +135,6 @@ W = window_rect(3); % width of screen
 H = window_rect(4); % height of screen
 textH = H/2.3;
 
-
 font = 'NanumGothic';
 fontsize = 30;
 
@@ -152,7 +151,7 @@ if ~practice_mode % if not practice mode, save the data
     if exist(fname, 'file'), load(fname, 'out'); end
     
     % add some task information
-    out.version = 'FAST_fmri_wordgeneration_v1_11-05-2017';
+    out.version = 'FAST_fmri_wordgeneration_v1_11-15-2017';
     out.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     out.subject = SID;
     out.session = SessID;
@@ -174,11 +173,39 @@ if ~practice_mode % if not practice mode, save the data
 end
 
 %% SETUP: Eyelink
-
+theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
+    
 % need to be revised when the eyelink is here.
 if USE_EYELINK
-    edf_filename = ['YWG_sub' SID '_sess' SessID];
-    eyelink_main(edf_filename, 'Init');
+    edf_filename = ['WG_sub' SID '_sess' SessID];
+    % from eyelink_main function
+    commandwindow;
+    dummymode = 0;
+    el = EyelinkInitDefaults(theWindow);
+    edfFile = sprintf('%s.edf', edf_filename);
+
+    if ~EyelinkInit(dummymode)
+        fprintf('Eyelink Init aborted. Cannot connect to Eyelink\n');
+        Eyelink('Shutdown');
+        Screen('CloseAll');
+        commandwindow;
+        return;
+    end
+
+    Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,AREA');
+    Eyelink('Openfile', edfFile);
+
+    if Eyelink('IsConnected')~=1 && dummymode == 0
+        fprintf('not connected at step 5, clean up\n');
+        Eyelink('Shutdown');
+        Screen('CloseAll');
+        commandwindow;
+        return;
+    end
+
+    EyelinkDoTrackerSetup(el); % calibration
+    EyelinkDoDriftCorrection(el); % add from Song, driftcorrection
+    % ....
     
     status = Eyelink('Initialize');
     if status
@@ -192,8 +219,7 @@ end
 
 try
     %% START: Screen
-	theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
-    Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
+	Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
     Screen('TextFont', theWindow, font);
     Screen('TextSize', theWindow, fontsize);
     HideCursor;
@@ -216,87 +242,88 @@ try
     end
     
     %% TEST RECORDING... and play
-    % Recording Setting
-    InitializePsychSound;
-    pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
-    % Sound recording: Preallocate an internal audio recording  buffer with a capacity of 10 seconds
-    PsychPortAudio('GetAudioData', pahandle, 10);
-    
-    while (1)
-        [~,~,keyCode] = KbCheck;
-        [~, ~, button] = GetMouse(theWindow);
-        if button(1)
-            break
-        elseif keyCode(KbName('q'))==1
-            abort_man;
-        end
-        Screen(theWindow, 'FillRect', bgcolor, window_rect);
-        for i = 1:numel(practice_prompt)
-            DrawFormattedText(theWindow, practice_prompt{i},'center', textH-50*(2-i), white);
-        end
-        Screen('Flip', theWindow);
-    end
+   
+        % Recording Setting
+        InitializePsychSound;
+        pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
+        % Sound recording: Preallocate an internal audio recording  buffer with a capacity of 10 seconds
+        PsychPortAudio('GetAudioData', pahandle, 10);
         
-    % Showing seed word, beeping, recording X 3 times
-    for n = 1:3
-        % seed word for 2.5s
-        if n == 1            
-            Screen('FillRect', theWindow, bgcolor, window_rect);
-            Screen('TextSize', theWindow, fontsize*2); % emphasize
-            DrawFormattedText(theWindow, double('테스트'),'center', textH, orange);
+        while (1)
+            [~,~,keyCode] = KbCheck;
+            [~, ~, button] = GetMouse(theWindow);
+            if button(1)
+                break
+            elseif keyCode(KbName('q'))==1
+                abort_man;
+            end
+            Screen(theWindow, 'FillRect', bgcolor, window_rect);
+            for i = 1:numel(practice_prompt)
+                DrawFormattedText(theWindow, practice_prompt{i},'center', textH-50*(2-i), white);
+            end
             Screen('Flip', theWindow);
-            waitsec_fromstarttime(GetSecs, 2.5);            
         end
         
-        % start recording
-        PsychPortAudio('Start', pahandle, 0, 0, 1);
+        % Showing seed word, beeping, recording X 3 times
+        for n = 1:3
+            % seed word for 2.5s
+            if n == 1
+                Screen('FillRect', theWindow, bgcolor, window_rect);
+                Screen('TextSize', theWindow, fontsize*2); % emphasize
+                DrawFormattedText(theWindow, double('테스트'),'center', textH, orange);
+                Screen('Flip', theWindow);
+                waitsec_fromstarttime(GetSecs, 2.5);
+            end
+            
+            % start recording
+            PsychPortAudio('Start', pahandle, 0, 0, 1);
+            Screen('FillRect', theWindow, bgcolor, window_rect);
+            Screen('Flip', theWindow);
+            
+            % beeping
+            beep = MakeBeep(1000,.2);
+            Snd('Play',beep);
+            
+            % cross for 1s
+            Screen('FillRect', theWindow, bgcolor, window_rect);
+            Screen('TextSize', theWindow, fontsize*1.2); % emphasize
+            DrawFormattedText(theWindow, '+', 'center', textH, white);
+            Screen('Flip', theWindow);
+            waitsec_fromstarttime(GetSecs, 1)
+            
+            % blank for 1.5s
+            Screen('FillRect', theWindow, bgcolor, window_rect);
+            Screen('Flip', theWindow);
+            waitsec_fromstarttime(GetSecs, 1.5)
+            
+            % stop recording
+            PsychPortAudio('Stop', pahandle);
+            out.test_audiodata{n} = PsychPortAudio('GetAudioData', pahandle);
+        end
+        
         Screen('FillRect', theWindow, bgcolor, window_rect);
+        Screen('TextSize', theWindow, fontsize); % emphasize
+        DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
         Screen('Flip', theWindow);
         
-        % beeping
-        beep = MakeBeep(1000,.2);
-        Snd('Play',beep);
+        PsychPortAudio('Close', pahandle);
+        save(out.wordfile, 'out');
         
-        % cross for 1s
+        dat_file = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
+        load(dat_file);
+        
         Screen('FillRect', theWindow, bgcolor, window_rect);
-        Screen('TextSize', theWindow, fontsize*1.2); % emphasize
-        DrawFormattedText(theWindow, '+', 'center', textH, white);
+        Screen('TextSize', theWindow, fontsize); % emphasize
+        DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
         Screen('Flip', theWindow);
-        waitsec_fromstarttime(GetSecs, 1)
         
-        % blank for 1.5s
-        Screen('FillRect', theWindow, bgcolor, window_rect);
-        Screen('Flip', theWindow);
-        waitsec_fromstarttime(GetSecs, 1.5)
-        
-        % stop recording
-        PsychPortAudio('Stop', pahandle);
-        out.test_audiodata{n} = PsychPortAudio('GetAudioData', pahandle);
-    end
-
-    Screen('FillRect', theWindow, bgcolor, window_rect);
-    Screen('TextSize', theWindow, fontsize); % emphasize
-    DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
-    Screen('Flip', theWindow);
-    
-    PsychPortAudio('Close', pahandle);
-    save(out.wordfile, 'out');
-    
-    dat_file = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-    load(dat_file);
-    
-    Screen('FillRect', theWindow, bgcolor, window_rect);
-    Screen('TextSize', theWindow, fontsize); % emphasize
-    DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
-    Screen('Flip', theWindow);
-    
-    % play the 3 sounds
-    for z=1:3
-        WaitSecs(0.5);
-        players = audioplayer(out.test_audiodata{z}', 44100);
-        play(players);
-        WaitSecs(3);
-    end
+        % play the 3 sounds
+        for z=1:3
+            WaitSecs(0.5);
+            players = audioplayer(out.test_audiodata{z}', 44100);
+            play(players);
+            WaitSecs(3);
+        end
     
     
     %% DISPLAY EXP START MESSAGE
@@ -344,18 +371,18 @@ try
     Screen(theWindow,'FillRect',bgcolor, window_rect);
     Screen('Flip', theWindow);
         
-    %% EYELINK AND BIOPAC SETUP
+    %% EYELINK AND BIOPAC START
     
     if USE_EYELINK
         Eyelink('StartRecording');
         out.eyetracker_starttime = GetSecs; % eyelink timestamp
-        Eyelink('Message','WG start');
+        Eyelink('Message','WG Run start');
     end
         
     if USE_BIOPAC
         out.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(out.biopac_starttime, 1);
+        waitsec_fromstarttime(GetSecs, 1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
@@ -430,8 +457,12 @@ try
     end
     if USE_EYELINK
         Eyelink('Message','WG Run end');
-        eyelink_main(edf_filename, 'Shutdown');
-        
+        Eyelink('Command', 'set_idle_mode');
+        WaitSecs(0.5);
+        Eyelink('StopRecording');
+        Eyelink('CloseFile');
+        Eyelink('ReceiveFile', edfFile, edfFile);
+        Eyelink('Shutdown');        
     end
     
     %% RUN END MESSAGE

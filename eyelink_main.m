@@ -1,5 +1,5 @@
-function eyelink_main(savefilename, varargin)
-
+function eyelink_main(edfFile, varargin)
+global theWindow
 % eyelink_main(savefilename, varargin)
 % 
 % varargin: 'Init', 'Shutdown'
@@ -14,8 +14,7 @@ for i = 1:length(varargin)
                 dummymode=0;
                 
                 try
-                    
-                    edfFile = sprintf('%s.EDF', savefilename);
+%                     edfFile = sprintf('%s.EDF', savefilename);
                     
                     % STEP 2
                     % Open a graphics window on the main screen
@@ -27,7 +26,7 @@ for i = 1:length(varargin)
                     % and perform some initializations. The information is returned
                     % in a structure that also contains useful defaults
                     % and control codes (e.g. tracker state bit and Eyelink key values).
-                    el=EyelinkInitDefaults(window1); % need for calibration?
+                    el=EyelinkInitDefaults(theWindow); % need for calibration?
                     
                     % STEP 4
                     % Initialization of the connection with the Eyelink Gazetracker.
@@ -74,7 +73,7 @@ for i = 1:length(varargin)
                     % set EDF file contents using the file_sample_data and
                     % file-event_filter commands
                     % set link data thtough link_sample_data and link_event_filter
-                    Eyelink('command', 'file_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT');
+%                     Eyelink('command', 'file_event_filter = LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT');
                     
                     % check the software version
                     % add "HTARGET" to record possible target data for EyeLink Remote
@@ -82,7 +81,7 @@ for i = 1:length(varargin)
 %                         Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,HTARGET,GAZERES,STATUS,INPUT');
 %                         Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,HTARGET,STATUS,INPUT');
 %                     else
-                        Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,GAZERES,STATUS,INPUT');
+%                         Eyelink('command', 'file_sample_data  = LEFT,RIGHT,GAZE,HREF,AREA,GAZERES,STATUS,INPUT');
                         Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS,INPUT');
 %                     end
                     
@@ -126,7 +125,7 @@ for i = 1:length(varargin)
                     % Hide the mouse cursor;
                     % Screen('HideCursorHelper', window1); % wani: don't need calibration
                     EyelinkDoTrackerSetup(el); % wani: don't need calibration
-                    EyelinkDoDriftCorrection(el); % add from Song
+                    EyelinkDoDriftCorrection(el); % add from Song, driftcorrection
                     
                 catch exc
                     %this "catch" section executes in case of an error in the "try" section

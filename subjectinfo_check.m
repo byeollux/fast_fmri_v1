@@ -63,7 +63,7 @@ elseif task
 elseif survey
     fname = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
 elseif resting
-    fname = fullfile(savedir, ['e_surveydata_sub' SID '_sess' SessID '.mat']);
+    fname = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
 else
     error('Unknown input');
 end
@@ -100,9 +100,11 @@ elseif whattodo == 2 && survey      % is it right? 'survey' include task part.
         start_line(1) = numel(temp.audiodata);
         
     elseif survey
+        seeds_i = 1;
+        target_i = 1;
         for j = 1:5
-            if ~isempty(temp.dat{1,i})
-                seeds_i = j;
+            if ~isempty(temp.dat{1,j})
+                seeds_i = j
             end
         end
         start_line(1) = seeds_i; % the number of saved seed word

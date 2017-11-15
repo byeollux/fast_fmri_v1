@@ -35,6 +35,14 @@ function fast_fmri_transcribe_responses(varargin)
 %
 %    fast_fmri_transcribe_responses % after running fast_fmri_word_generation
 %
+% ..
+%    Copyright (C) 2017 COCOAN lab
+% ..
+%
+%    If you have any questions, please email to: 
+%
+%          Byeol Kim (roadndream@naver.com) or
+%          Wani Woo (waniwoo@skku.edu)
 %
 
 %% PARSING OUT OPTIONAL INPUT
@@ -68,7 +76,7 @@ load(save_file);
 
 %% Response_N
 % response_n = 1:numel(out.audiodata); % out.audiodata = 1x40
-
+response_n = [1:40];
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}

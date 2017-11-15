@@ -1,4 +1,4 @@
-function data = fast_fmri_task_main(ts, varargin)
+function data = fast_fmri_task_main(ts, isi_iti, varargin)
 
 % Run thinking and rating step of Free Association Semantic Task with the fMRI scannin g. 
 %
@@ -10,15 +10,18 @@ function data = fast_fmri_task_main(ts, varargin)
 % :Inputs:
 %
 %   **ts:**
-%        what is ts?
+%        [W1, W2, isi, iti, iti2]  : isi & iti = 3, 4, 6, 9 secs
 %
 % :Optional Inputs: Enter keyword followed by variable with values
 %
-%   **'response':**
-%        response{i}{j}: j'th response for i'th seed word
-%                - The seed word should be saved as the first (response{i}{1}) response.
 %   **'test':**
 %        This will give you a smaller screen to test your code.
+%
+%   **'eye', 'eyetrack':**
+%        This will turn on the eye tracker, and record eye movement and pupil size. 
+%
+%   **'biopac':**
+%        This will send the trigger to biopac. 
 %
 %   **'savedir':**
 %        You can specify the directory where you save the data.
@@ -33,14 +36,19 @@ function data = fast_fmri_task_main(ts, varargin)
 % :Examples:
 % ::
 %
-% ts{j} = {{'w1', 'w2'}, [6], [0]} -> no rating
-% ts{j} = {{'w1', 'w2'}, [6], [6]} -> rating
+% ts{j} = {{'w1', 'w2'}, [6], [0], [0]} -> no rating
+% ts{j} = {{'w1', 'w2'}, [6], [9], [0]} -> rating
+% ts{j} = {{'w1', 'w2'}, [6], [0], [4]} -> concentration question
+% 
 % ..
-%    Copyright (C) 2017  Wani Woo (Cocoan lab)
+%    Copyright (C) 2017 COCOAN lab
 % ..
+%
+%    If you have any questions, please email to: 
+%          Byeol Kim (roadndream@naver.com) 
+%
 %% default setting
 testmode = false;
-practice_mode = false;
 
 USE_EYELINK = false;
 USE_BIOPAC = false;
@@ -66,8 +74,6 @@ for i = 1:length(varargin)
                 channel_n = 1;
                 biopac_channel = 0;
                 ljHandle = BIOPAC_setup(channel_n); % BIOPAC SETUP
-            case {'practice'}
-                practice_mode = true;
         end
     end
 end
@@ -77,7 +83,7 @@ cd(scriptdir);
 %% SETUP: global
 global theWindow W H; % window property
 global white red orange blue bgcolor; % color
-global fontsize window_rect lb rb tb bb ; % rating scale
+global fontsize window_rect rT cqT ; % rating scale
 
 %% SETUP: Screen
 
@@ -107,47 +113,65 @@ red = [189 0 38];
 blue = [0 85 169];
 orange = [255 164 0];
 
-% rating scale left and right bounds 1/3 and 2/3
-lb = 1.5*W/5; % in 1280, it's 384
-rb = 3.5*W/5; % in 1280, it's 896 rb-lb = 512
-
-% rating scale upper and bottom bounds 1/4 and 3/4
-tb = H/5+100;           % in 800, it's 210
-bb = H/2+100;           % in 800, it's 450, bb-tb = 240
-scale_H = (bb-tb).*0.15;
-
 %% SETUP: DATA and Subject INFO
-if ~practice_mode % if not practice mode, save the data
-    
+
     [fname, start_line, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
     
     % add some task information
-    data.version = 'FAST_fmri_task_v1_11-05-2017';
-    data.github = 'https://github.com/cocoanlab/fast_fmri';
+    data.version = 'FAST_fmri_task_v1_11-15-2017';
+    data.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     data.subject = SID;
     data.session = SessID;
     data.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
     data.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     data.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
     data.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    data.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
+    data.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
     data.exp_starttime = datestr(clock, 0); % date-time: timestamp
+    data.isiiti = isi_iti;
     
     % initial save of trial sequence and data
-    save(data.taskfile, 'ts', 'data');
-end
+    save(data.taskfile, 'data');
 
 %% SETUP: Eyelink
 
 % need to be revised when the eyelink is here.
 if USE_EYELINK
-    edf_filename = ['eyelink_sub' SID '_sess' SessID];
-    eyelink_main(edf_filename, 'Init');
-    
+    edf_filename = ['Rest_sub' SID '_sess' SessID];
+    % from eyelink_main function
+    commandwindow;
+    dummymode = 0;
+    el = EyelinkInitDefaults(theWindow);
+    edfFile = sprintf('%s.edf', edf_filename);
+
+    if ~EyelinkInit(dummymode)
+        fprintf('Eyelink Init aborted. Cannot connect to Eyelink\n');
+        Eyelink('Shutdown');
+        Screen('CloseAll');
+        commandwindow;
+        return;
+    end
+
+    Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS,INPUT');
+    Eyelink('Openfile', edfFile);
+
+    if Eyelink('IsConnected')~=1 && dummymode == 0
+        fprintf('not connected at step 5, clean up\n');
+        Eyelink('Shutdown');
+        Screen('CloseAll');
+        commandwindow;
+        return;
+    end
+
+    EyelinkDoTrackerSetup(el); % calibration
+    EyelinkDoDriftCorrection(el); % add from Song, driftcorrection
+    % ....
+
     status = Eyelink('Initialize');
     if status
         error('Eyelink is not communicating with PC. Its okay baby.');
     end
+
     Eyelink('Command', 'set_idle_mode');
     waitsec_fromstarttime(GetSecs, .5);
 end
@@ -164,11 +188,11 @@ try
     HideCursor;
     
     %% PROMPT SETUP:
-    practice_prompt = double('연습을 해보겠습니다.\n여러 개의 감정 단어들이 나타나면 5초 안에\n트랙볼로 커서를 움직여 아무 단어나 클릭하시면 됩니다.\n\n준비되셨으면 버튼을 눌러주세요');
+    practice_prompt = double('연습을 해보겠습니다.\n여러 개의 감정 단어들이 나타나면 8초 안에\n트랙볼로 커서를 움직여 아무 단어나 클릭하시면 됩니다.\n\n준비되셨으면 버튼을 눌러주세요');
     pre_scan_prompt{1} = double('이제부터 여러분이 방금 말씀하셨던 단어들을 순서대로 보게 될 것입니다.');
     pre_scan_prompt{2} = double('각 단어들을 15초 동안 보여드릴텐데 그 시간동안 그 단어들이');
     pre_scan_prompt{3} = double('여러분에게 어떤 의미로 다가오는지 자연스럽게 생각해보시기 바랍니다.');
-    pre_scan_prompt{4} = double('이후 여러 개의 감정 단어들이 등장하면 5초 안에');
+    pre_scan_prompt{4} = double('이후 여러 개의 감정 단어들이 등장하면 8초 안에');
     pre_scan_prompt{5} = double('여러분이 현재 느끼는 감정과 가장 가까운 단어를 선택하시면 됩니다.');
     pre_scan_prompt{6} = double('\n준비되셨으면 버튼을 클릭해주세요.');
     exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
@@ -176,7 +200,10 @@ try
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
     
     %% PRACTICE RATING: Test trackball, Practice emotion rating
-    
+    wordT = 15;     % duration for showing target words
+    rT = 8;         % duration for rating
+    cqT = 8;        % duration for question of concentration
+
     % viewing the practice prompt until click. 
         while (1)
             [~, ~, button] = GetMouse(theWindow);
@@ -192,8 +219,8 @@ try
             Screen('Flip', theWindow);
         end
         WaitSecs(.3)
-        emotion_rating(GetSecs); % sub-function: 5s
-        concent_rating(GetSecs);
+        emotion_rating(GetSecs); % sub-function: 8s
+        concent_rating(GetSecs); % sub-function: 11s
         
         % practice end
         Screen(theWindow,'FillRect',bgcolor, window_rect);
@@ -262,11 +289,12 @@ try
     Screen(theWindow,'FillRect',bgcolor, window_rect);
     Screen('Flip', theWindow);
         
-    %% EYELINK AND BIOPAC SETUP
+    %% EYELINK AND BIOPAC START
     
     if USE_EYELINK
         Eyelink('StartRecording');
         data.eyetracker_starttime = GetSecs; % eyelink timestamp
+        Eyelink('Message','Task Run start');
     end
         
     if USE_BIOPAC
@@ -281,45 +309,65 @@ try
     
     
     %% MAIN TASK 1. SHOW 2 WORDS, WORD PROMPT
-    wordT = 1;   % duration for showing target words
-    cqT = 9;     % duration for question of concentration
     for ts_i = 1:numel(ts)   % repeat for 40 trials
         data.dat{ts_i}.trial_starttime = GetSecs; % trial start timestamp
         display_target_word(ts{ts_i}{1}); % sub-function, display two generated words
+        if USE_EYELINK
+            Eyelink('Message','Task Words present');
+        end
         waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT); % for 15s
+        
          
         % Blank for ISI
         data.dat{ts_i}.isi_starttime = GetSecs;  % ISI start timestamp
         Screen(theWindow,'FillRect',bgcolor, window_rect);
         Screen('Flip', theWindow);
+        if USE_EYELINK
+            Eyelink('Message','Task ISI blank');
+        end
         waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2});
         
         % Emotion Rating
         if ts{ts_i}{3} ~=0   % if 3rd column of ts is not 0, do rating for 5s
+            if USE_EYELINK
+                Eyelink('Message','Task Rating present');
+            end
             data.dat{ts_i}.rating_starttime = GetSecs;  % rating start timestamp
             [data.dat{ts_i}.rating_emotion_word, data.dat{ts_i}.rating_trajectory_time, ...
-                data.dat{ts_i}.rating_trajectory] = emotion_rating(data.dat{ts_i}.rating_starttime); % sub-function
+             data.dat{ts_i}.rating_trajectory] = emotion_rating(data.dat{ts_i}.rating_starttime); % sub-function
+            
             
             % Blank for ITI
+            if USE_EYELINK
+                Eyelink('Message','Task ITI blank');
+            end
             data.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
             Screen(theWindow,'FillRect',bgcolor, window_rect);
             Screen('Flip', theWindow);
-            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2}+5+ts{ts_i}{3});
+            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2}+rT+ts{ts_i}{3});
         end
 
         % Concentration Qustion
-        if ts{ts_i}{4} ~=0   % if 4rd column of ts is not 0, ask concentration for 9(ct)+3s
+        if ts{ts_i}{4} ~=0   % if 4rd column of ts is not 0, ask concentration for 9(cqT)+3s
+            if USE_EYELINK
+                Eyelink('Message','Task Concent present');
+            end
             data.dat{ts_i}.concent_starttime = GetSecs;  % rating start timestamp
             [data.dat{ts_i}.rating_concent, data.dat{ts_i}.rating_concent_time, ...
                 data.dat{ts_i}.rating_trajectory] = concent_rating(data.dat{ts_i}.concent_starttime); % sub-function
             
+            
             % Blank for ITI
+            if USE_EYELINK
+                Eyelink('Message','Task ITI blank');
+            end
             data.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
             Screen(theWindow,'FillRect',bgcolor, window_rect);
             Screen('Flip', theWindow);
+            
             waitsec_fromstarttime(data.dat{ts_i}.iti_starttime, wordT+ts{ts_i}{2}+cqT+3+ts{ts_i}{4});
         end
-
+              
         % save data every even trial
         if mod(ts_i, 2) == 0 
             save(data.taskfile, 'data', '-append'); % 'append' overwrite with adding new columns to 'data'
@@ -328,10 +376,13 @@ try
     end
     
     %% RUN END MESSAGE
-
-        Screen(theWindow,'FillRect',bgcolor, window_rect);
-        DrawFormattedText(theWindow, run_end_prompt, 'center', 'center', white, [], [], [], 1.5);
-        Screen('Flip', theWindow);
+    Screen('TextSize', theWindow, fontsize);    
+    Screen(theWindow,'FillRect',bgcolor, window_rect);
+    DrawFormattedText(theWindow, run_end_prompt, 'center', 'center', white, [], [], [], 1.5);
+    Screen('Flip', theWindow);
+    if USE_EYELINK
+        Eyelink('Message','Task Run End');
+    end
     
     save(data.taskfile, 'data', '-append');
     
@@ -418,7 +469,7 @@ end
 
 function [emotion_word, trajectory_time, trajectory] = emotion_rating(starttime)
 
-global W H orange bgcolor window_rect theWindow red
+global W H orange bgcolor window_rect theWindow red rT
 
 rng('shuffle');        % it prevents pseudo random number
 rand_z = randperm(14); % random seed
@@ -443,7 +494,7 @@ while(1)
     trajectory(j,:) = [x y];                  % trajectory of location of cursor
     trajectory_time(j) = GetSecs - starttime; % trajectory of time
     
-    if trajectory_time(end) >= 5  % maximum time of rating is 5s
+    if trajectory_time(end) >= rT  % maximum time of rating is 8s
         button(1) = true;
     end
     
@@ -513,7 +564,7 @@ function [concentration, trajectory_time, trajectory] = concent_rating(starttime
 
 global W H orange bgcolor window_rect theWindow red fontsize white cqT
 intro_prompt1 = double('지금, 나타나는 단어들에 대해 얼마나 주의를 잘 기울이고 계신가요?');
-intro_prompt2 = double('10초 안에 트랙볼을 움직여서 집중하고 있는 정도를 클릭해주세요.');
+intro_prompt2 = double('8초 안에 트랙볼을 움직여서 집중하고 있는 정도를 클릭해주세요.');
 end_prompt = double('과제가 다시 이어집니다. 집중해주세요.');
 
 title={'전혀 기울이지 않음','보통', '매우 집중하고 있음'};

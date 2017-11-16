@@ -84,7 +84,7 @@ for i = 1:length(varargin)
 end
 
 %% SETUP: DATA and Subject INFO
-    [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'word'); % subfunction
+    [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'resting'); % subfunction
      n = str2double(SessID)+1;      % n = 1~5, SessID = 0~4
     if n > 1 && exist(fname, 'file')  % after first resting condition
         load(fname, 'rest')
@@ -196,20 +196,20 @@ end
     Screen('TextSize', theWindow, fontsize);
     HideCursor;
 
-%% SETUP: Eyelink
+    %% SETUP: Eyelink
 
-if USE_EYELINK
-    edf_filename = ['YWG_' SID '_' SessID]; % name should be equal or less than 8
-    edfFile = sprintf('%s.EDF', edf_filename);
-    eyelink_main(edfFile, 'Init');
-    
-    status = Eyelink('Initialize');
-    if status
-        error('Eyelink is not communicating with PC. Its okay baby.');
+    if USE_EYELINK
+        edf_filename = ['R_' SID '_' SessID]; % name should be equal or less than 8
+        edfFile = sprintf('%s.EDF', edf_filename);
+        eyelink_main(edfFile, 'Init');
+        
+        status = Eyelink('Initialize');
+        if status
+            error('Eyelink is not communicating with PC. Its okay baby.');
+        end
+        Eyelink('Command', 'set_idle_mode');
+        waitsec_fromstarttime(GetSecs, .5);
     end
-    Eyelink('Command', 'set_idle_mode');
-    waitsec_fromstarttime(GetSecs, .5);
-end
 
 %% TAST START: ===========================================================
 
@@ -242,23 +242,23 @@ try
         Screen('Flip', theWindow);
     end
     
-        %% DISPLAY INTRO MESSAGE    
-        while (1)
-            [~, ~, button] = GetMouse(theWindow);
-            [~,~,keyCode] = KbCheck;
-            
-            if button(1)
-                break
-            elseif keyCode(KbName('q'))==1
-                abort_man;
-            end
-            Screen(theWindow,'FillRect',bgcolor, window_rect);
-            for i = 1:3
-                DrawFormattedText(theWindow, intro_prompt{i},'center', H/2-40*(2-i), white);
-            end
-            Screen('Flip', theWindow);
+    %% DISPLAY INTRO MESSAGE
+    while (1)
+        [~, ~, button] = GetMouse(theWindow);
+        [~,~,keyCode] = KbCheck;
+        
+        if button(1)
+            break
+        elseif keyCode(KbName('q'))==1
+            abort_man;
         end
-        waitsec_fromstarttime(GetSecs, .3);
+        Screen(theWindow,'FillRect',bgcolor, window_rect);
+        for i = 1:3
+            DrawFormattedText(theWindow, intro_prompt{i},'center', H/2-40*(2-i), white);
+        end
+        Screen('Flip', theWindow);
+    end
+    waitsec_fromstarttime(GetSecs, .3);
            
     %% WAITING FOR INPUT FROM THE SCANNER
     while (1)
@@ -366,9 +366,15 @@ try
         Eyelink('Message','Resting Run end');
         eyelink_main(edfFile, 'Shutdown');
     end
+    if USE_BIOPAC
+        rest.dat{n}.biopac_endtime = GetSecs; % biopac timestamp
+        BIOPAC_trigger(ljHandle, biopac_channel, 'on');
+        waitsec_fromstarttime(rest.dat{n}.biopac_endtime, 1);
+        BIOPAC_trigger(ljHandle, biopac_channel, 'off');
+    end
     
     % save the data
-    save(rest.restingfile, 'rest');
+    save(rest.restingfile, 'rest', '-append');
     
     WaitSecs(2);
     

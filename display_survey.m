@@ -1,6 +1,6 @@
 function display_survey(z, seeds_i, target_i, words, varargin)
 
-global W H white theWindow window_rect bgcolor bodymap recsize rec barsize; 
+global W H white theWindow window_rect bgcolor bodymap recsize rec linexy; 
 %%
 whole = false;
 practice1 = false;
@@ -56,29 +56,29 @@ body_prompt = {'해당 단어를 떠올릴 때 활성화되는 느낌이 드는 부분은 빨간색으로,'
 title = title(:,z);
 
 %% Coordinates for lines
-linexy = zeros(2,48);
-
-for i=1:6       % 6 lines
-    linexy(1,2*i-1)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
-    linexy(1,2*i)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
-    linexy(2,2*i-1) = rec(i,2)+recsize(2)/2;
-    linexy(2,2*i) = rec(i,2)+recsize(2)/2;
-end
-
-for i=1:6       % 3 scales for one line, 18 scales 
-    linexy(1,6*(i+1)+1)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
-    linexy(1,6*(i+1)+2)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
-    linexy(1,6*(i+1)+3)= rec(i,1)+recsize(1)/2;
-    linexy(1,6*(i+1)+4)= rec(i,1)+recsize(1)/2;
-    linexy(1,6*(i+1)+5)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
-    linexy(1,6*(i+1)+6)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
-    linexy(2,6*(i+1)+1)= rec(i,2)+recsize(2)/2-barsize(2,i)/2;
-    linexy(2,6*(i+1)+2)= rec(i,2)+recsize(2)/2+barsize(2,i)/2;
-    linexy(2,6*(i+1)+3)= rec(i,2)+recsize(2)/2-barsize(3,i)/2;
-    linexy(2,6*(i+1)+4)= rec(i,2)+recsize(2)/2+barsize(3,i)/2;
-    linexy(2,6*(i+1)+5)= rec(i,2)+recsize(2)/2-barsize(4,i)/2;
-    linexy(2,6*(i+1)+6)= rec(i,2)+recsize(2)/2+barsize(4,i)/2;
-end
+% linexy = zeros(2,48);
+% 
+% for i=1:6       % 6 lines
+%     linexy(1,2*i-1)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
+%     linexy(1,2*i)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
+%     linexy(2,2*i-1) = rec(i,2)+recsize(2)/2;
+%     linexy(2,2*i) = rec(i,2)+recsize(2)/2;
+% end
+% 
+% for i=1:6       % 3 scales for one line, 18 scales 
+%     linexy(1,6*(i+1)+1)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
+%     linexy(1,6*(i+1)+2)= rec(i,1)+(recsize(1)-barsize(1,i))/2;
+%     linexy(1,6*(i+1)+3)= rec(i,1)+recsize(1)/2;
+%     linexy(1,6*(i+1)+4)= rec(i,1)+recsize(1)/2;
+%     linexy(1,6*(i+1)+5)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
+%     linexy(1,6*(i+1)+6)= rec(i,1)+(recsize(1)+barsize(1,i))/2;
+%     linexy(2,6*(i+1)+1)= rec(i,2)+recsize(2)/2-barsize(2,i)/2;
+%     linexy(2,6*(i+1)+2)= rec(i,2)+recsize(2)/2+barsize(2,i)/2;
+%     linexy(2,6*(i+1)+3)= rec(i,2)+recsize(2)/2-barsize(3,i)/2;
+%     linexy(2,6*(i+1)+4)= rec(i,2)+recsize(2)/2+barsize(3,i)/2;
+%     linexy(2,6*(i+1)+5)= rec(i,2)+recsize(2)/2-barsize(4,i)/2;
+%     linexy(2,6*(i+1)+6)= rec(i,2)+recsize(2)/2+barsize(4,i)/2;
+% end
 
 %% locations of the two words
 if ~resting

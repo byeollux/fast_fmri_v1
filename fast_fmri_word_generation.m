@@ -170,35 +170,33 @@ if ~practice_mode % if not practice mode, save the data
     % initial save the data
     save(out.wordfile, 'out');
     save(out.responsefile, 'response');
-    
 end
 
-%% SETUP: Eyelink
-theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
-    
-% need to be revised when the eyelink is here.
-if USE_EYELINK
-    edf_filename = ['YWG_' SID '_' SessID]; % name should be equal or less than 8
-    edfFile = sprintf('%s.EDF', edf_filename);
-    eyelink_main(edfFile, 'Init');
-    
-    status = Eyelink('Initialize');
-    if status
-        error('Eyelink is not communicating with PC. Its okay baby.');
-    end
-    Eyelink('Command', 'set_idle_mode');
-    waitsec_fromstarttime(GetSecs, .5);
-end
-
-%% TAST START: ===========================================================
-
-try
     %% START: Screen
+    theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
 	Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
     Screen('TextFont', theWindow, font);
     Screen('TextSize', theWindow, fontsize);
     HideCursor;
     
+    %% SETUP: Eyelink
+    % need to be revised when the eyelink is here.
+    if USE_EYELINK
+        edf_filename = ['W_' SID '_' SessID]; % name should be equal or less than 8
+        edfFile = sprintf('%s.EDF', edf_filename);
+        eyelink_main(edfFile, 'Init');
+        
+        status = Eyelink('Initialize');
+        if status
+            error('Eyelink is not communicating with PC. Its okay baby.');
+        end
+        Eyelink('Command', 'set_idle_mode');
+        waitsec_fromstarttime(GetSecs, .5);
+    end
+
+%% TAST START: ===========================================================
+
+try
     %% PROMPT SETUP:
     practice_prompt{1} = double('녹음 테스트를 해보겠습니다.');
     practice_prompt{2} = double('단어가 보이고 벨이 울리면 말씀해주세요. 3번 반복됩니다.');

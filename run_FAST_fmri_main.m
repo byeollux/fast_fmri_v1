@@ -1,7 +1,7 @@
 
 %% Sess 1
     %% Resting & Word Generation
-    fast_fmri_resting(0.01,'test','biopac','eyelink');       % practice resting
+    fast_fmri_resting(0.01,'test');       % practice resting
     % fast_fmri_resting(6, 'biopac','eyelink');       % 6 min restingrara
     fast_fmri_word_generation(seeds_rand{1},'test','biopac','eyelink');
     % fast_fmri_resting(2, 'biopac','eyelink')        % 2 min resting

@@ -63,7 +63,7 @@ elseif task
 elseif survey
     fname = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
 elseif resting
-    fname = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
+    fname = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
 else
     error('Unknown input');
 end

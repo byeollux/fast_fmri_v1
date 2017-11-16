@@ -117,7 +117,7 @@ orange = [255 164 0];
 
 %% SETUP: DATA and Subject INFO
 
-    [fname, start_line, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
+    [~, ~, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
     
     % add some task information
     data.version = 'FAST_fmri_task_v1_11-16-2017';
@@ -134,34 +134,34 @@ orange = [255 164 0];
     
     % initial save of trial sequence and data
     save(data.taskfile, 'data');
-
-%% SETUP: Eyelink
-
-% need to be revised when the eyelink is here.
-if USE_EYELINK
-    edf_filename = ['YWG_' SID '_' SessID]; % name should be equal or less than 8
-    edfFile = sprintf('%s.EDF', edf_filename);
-    eyelink_main(edfFile, 'Init');
     
-    status = Eyelink('Initialize');
-    if status
-        error('Eyelink is not communicating with PC. Its okay baby.');
+    %% START: Screen
+    theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
+    Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
+    Screen('TextFont', theWindow, font);
+    Screen('TextSize', theWindow, fontsize);
+    HideCursor;
+    
+    %% SETUP: Eyelink
+    
+    % need to be revised when the eyelink is here.
+    if USE_EYELINK
+        edf_filename = ['T_' SID '_' SessID]; % name should be equal or less than 8
+        edfFile = sprintf('%s.EDF', edf_filename);
+        eyelink_main(edfFile, 'Init');
+        
+        status = Eyelink('Initialize');
+        if status
+            error('Eyelink is not communicating with PC. Its okay baby.');
+        end
+        Eyelink('Command', 'set_idle_mode');
+        waitsec_fromstarttime(GetSecs, .5);
     end
-    Eyelink('Command', 'set_idle_mode');
-    waitsec_fromstarttime(GetSecs, .5);
-end
 
 
 %% TASK START
 
 try
-    % START: Screen
-	theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
-    Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
-    Screen('TextFont', theWindow, font); 
-    Screen('TextSize', theWindow, fontsize);
-    HideCursor;
-    
     %% PROMPT SETUP:
     practice_prompt = double('연습을 해보겠습니다.\n여러 개의 감정 단어들이 나타나면 8초 안에\n트랙볼로 커서를 움직여 아무 단어나 클릭하시면 됩니다.\n\n준비되셨으면 버튼을 눌러주세요');
     pre_scan_prompt{1} = double('이제부터 여러분이 방금 말씀하셨던 단어들을 순서대로 보게 될 것입니다.');

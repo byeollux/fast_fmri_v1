@@ -52,7 +52,7 @@ end
 %% Get subject ID    
 fprintf('\n');
 SID = input('Subject ID (number)? ', 's');
-if ~survey
+if ~survey 
     SessID = input('Session number? ', 's'); end
     
 %% Check if the data file exists
@@ -86,7 +86,7 @@ end
     
 %% If we want to start the task from where we left off
 
-if (whattodo == 2 && task) || (whattodo == 2 && word) || (whattodo == 2 && resting)
+if (whattodo == 2 && task) || (whattodo == 2 && word)
     
     error('You need to start from the beginning. Please check the file, and choose 1:Save new file. next time');
     
@@ -102,19 +102,19 @@ elseif whattodo == 2 && survey      % is it right? 'survey' include task part.
     elseif survey
         seeds_i = 1;
         target_i = 1;
-        for j = 1:5
+        for j = 1:4
             if ~isempty(temp.dat{1,j})
-                seeds_i = j
+                seeds_i = j;
             end
         end
-        start_line(1) = seeds_i; % the number of saved seed word
+        start_line(1) = seeds_i % the number of saved seed word
 
         for i = 1:40
             if ~isempty(temp.dat{i,start_line(1)})
                 target_i = i; 
             end   % the final number of saved target word           
         end
-        start_line(2) = target_i;
+        start_line(2) = target_i
                     
     end
      

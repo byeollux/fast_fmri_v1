@@ -62,6 +62,9 @@ savedir = fullfile(pwd, 'data');
 rest = [];
 psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
 
+addpath(genpath(psychtoolboxdir));
+addpath(genpath(pwd));
+
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -82,27 +85,38 @@ end
 
 %% SETUP: DATA and Subject INFO
     [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'word'); % subfunction
-    
-    if exist(fname, 'file'), load(fname, 'rest'); end
+     n = str2double(SessID)+1;      % n = 1~5, SessID = 0~4
+    if n > 1 && exist(fname, 'file')  % after first resting condition
+        load(fname, 'rest')
+        % initial save of trial sequence and data
+        rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
+        question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
+        for i = 1:5
+            rest.dat{n}.rating{1,i} = question_type{i};
+        end
+        rest.dat{n}.session_starttime = datestr(clock, 0); % date-time: timestamp
 
-    % add some task information
-    rest.version = 'FAST_fmri_wordgeneration_v1_11-15-2017';
-    rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
-    rest.subject = SID;
-    rest.session = SessID;
-    rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-    rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
-    rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-    rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
-    rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
-    rest.exp_starttime = datestr(clock, 0); % date-time: timestamp
-    question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
-    for i = 1:5
-        rest.rating{1,i} = question_type{i};
-    end 
-    
-    % initial save the data
-    save(rest.restingfile, 'rest');
+        save(rest.restingfile, 'rest', '-append');
+        
+    else  % First resting condition, make new file
+        % add some task information
+        rest.version = 'FAST_fmri_wordgeneration_v1_11-16-2017';
+        rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
+        rest.subject = SID;
+        rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sessnumber.mat']);
+        rest.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sessnumber.mat']);
+        rest.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sessnumber.mat']);
+        rest.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
+        rest.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
+        rest.exp_starttime = datestr(clock, 0); % date-time: timestamp
+        rest.dat = cell(1,5);
+        question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
+        for i = 1:5
+            rest.dat{n}.rating{1,i} = question_type{i};
+        end
+        save(rest.restingfile, 'rest');
+    end
+
 
 %% SETUP: global
 global theWindow W H; % window property
@@ -110,8 +124,6 @@ global white red orange bgcolor; % color
 global fontsize window_rect lb tb recsize rec barsize linexy; % rating scale
 
 %% SETUP: Screen
-
-addpath(genpath(psychtoolboxdir));
 
 bgcolor = 100;
 
@@ -189,7 +201,7 @@ end
 if USE_EYELINK
     edf_filename = ['YWG_' SID '_' SessID]; % name should be equal or less than 8
     edfFile = sprintf('%s.EDF', edf_filename);
-    eyelink_main(edf_filename, 'Init');
+    eyelink_main(edfFile, 'Init');
     
     status = Eyelink('Initialize');
     if status
@@ -266,11 +278,11 @@ try
     
     % gap between 's' key push and the first stimuli (disdaqs: data.disdaq_sec)
     % 4 seconds: "시작합니다..."
-    rest.runscan_starttime = GetSecs; % run start timestamp
+    rest.dat{n}.runscan_starttime = GetSecs; % run start timestamp
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.runscan_starttime, 4);
+    waitsec_fromstarttime(rest.dat{n}.runscan_starttime, 4);
     
     % 4 seconds: Blank
     Screen(theWindow,'FillRect',bgcolor, window_rect);
@@ -279,20 +291,20 @@ try
     %% EYELINK AND BIOPAC START
     if USE_EYELINK
         Eyelink('StartRecording');
-        rest.eyetracker_starttime = GetSecs; % eyelink timestamp
+        rest.dat{n}.eyetracker_starttime = GetSecs; % eyelink timestamp
         Eyelink('Message','Resting Run start');
     end
         
     if USE_BIOPAC
-        rest.biopac_starttime = GetSecs; % biopac timestamp
+        rest.dat{n}.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(rest.biopac_starttime, 1);
+        waitsec_fromstarttime(rest.dat{n}.biopac_starttime, 1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
     %% RESTING
-    waitsec_fromstarttime(rest.runscan_starttime, 10);
-    rest.resting_starttime = GetSecs; 
+    waitsec_fromstarttime(rest.dat{n}.runscan_starttime, 10); % end of DISDAQ
+    rest.dat{n}.resting_starttime = GetSecs; 
     if USE_EYELINK
         Eyelink('Message','Rest start');
     end
@@ -300,8 +312,8 @@ try
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, '+','center', 'center', white);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(rest.resting_starttime, duration*60);
-    rest.resting_endtime = GetSecs; 
+    waitsec_fromstarttime(rest.dat{n}.resting_starttime, duration*60);
+    rest.dat{n}.resting_endtime = GetSecs; 
        
     if USE_EYELINK
         Eyelink('Message','Rest end');
@@ -329,7 +341,7 @@ try
                 Screen('Flip', theWindow);
                 
                 if button(1)
-                    rest.rating{2,barsize(5,j)} = rating(x, j);
+                    rest.dat{n}.rating{2,barsize(5,j)} = rating(x, j);
                     display_survey(z, 1, 1, question_prompt,'resting');
                     Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
                     Screen('Flip', theWindow);
@@ -342,7 +354,7 @@ try
             end
         end
     end
-    rest.RT = GetSecs-rest.resting_endtime;
+    rest.dat{n}.RT = GetSecs-rest.dat{n}.resting_endtime;
     WaitSecs(.1);
 
     %% RUN END MESSAGE & SAVE DATA
@@ -352,7 +364,7 @@ try
     Screen('Flip', theWindow);
     if USE_EYELINK
         Eyelink('Message','Resting Run end');
-        eyelink_main(edf_filename, 'Shutdown');
+        eyelink_main(edfFile, 'Shutdown');
     end
     
     % save the data

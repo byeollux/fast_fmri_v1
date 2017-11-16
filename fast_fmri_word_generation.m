@@ -79,6 +79,9 @@ response_repeat = 40;
 out = [];
 psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
 
+addpath(genpath(psychtoolboxdir));
+addpath(genpath(pwd));
+
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -113,8 +116,6 @@ global white red orange bgcolor; % color
 global window_rect; % rating scale
 
 %% SETUP: Screen
-
-addpath(genpath(psychtoolboxdir));
 
 bgcolor = 100;
 
@@ -151,14 +152,14 @@ if ~practice_mode % if not practice mode, save the data
     if exist(fname, 'file'), load(fname, 'out'); end
     
     % add some task information
-    out.version = 'FAST_fmri_wordgeneration_v1_11-15-2017';
+    out.version = 'FAST_fmri_wordgeneration_v1_11-16-2017';
     out.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     out.subject = SID;
     out.session = SessID;
     out.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
     out.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     out.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-    out.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+    out.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
     out.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
     out.exp_starttime = datestr(clock, 0); % date-time: timestamp
     out.seed = seed; % date-time: timestamp
@@ -177,35 +178,9 @@ theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
     
 % need to be revised when the eyelink is here.
 if USE_EYELINK
-    edf_filename = ['WG_sub' SID '_sess' SessID];
-    % from eyelink_main function
-    commandwindow;
-    dummymode = 0;
-    el = EyelinkInitDefaults(theWindow);
-    edfFile = sprintf('%s.edf', edf_filename);
-
-    if ~EyelinkInit(dummymode)
-        fprintf('Eyelink Init aborted. Cannot connect to Eyelink\n');
-        Eyelink('Shutdown');
-        Screen('CloseAll');
-        commandwindow;
-        return;
-    end
-
-    Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,AREA');
-    Eyelink('Openfile', edfFile);
-
-    if Eyelink('IsConnected')~=1 && dummymode == 0
-        fprintf('not connected at step 5, clean up\n');
-        Eyelink('Shutdown');
-        Screen('CloseAll');
-        commandwindow;
-        return;
-    end
-
-    EyelinkDoTrackerSetup(el); % calibration
-    EyelinkDoDriftCorrection(el); % add from Song, driftcorrection
-    % ....
+    edf_filename = ['YWG_' SID '_' SessID]; % name should be equal or less than 8
+    edfFile = sprintf('%s.EDF', edf_filename);
+    eyelink_main(edfFile, 'Init');
     
     status = Eyelink('Initialize');
     if status
@@ -457,12 +432,7 @@ try
     end
     if USE_EYELINK
         Eyelink('Message','WG Run end');
-        Eyelink('Command', 'set_idle_mode');
-        WaitSecs(0.5);
-        Eyelink('StopRecording');
-        Eyelink('CloseFile');
-        Eyelink('ReceiveFile', edfFile, edfFile);
-        Eyelink('Shutdown');        
+        eyelink_main(edfFile, 'Shutdown');       
     end
     
     %% RUN END MESSAGE

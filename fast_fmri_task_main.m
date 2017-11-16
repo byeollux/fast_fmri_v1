@@ -49,12 +49,14 @@ function data = fast_fmri_task_main(ts, isi_iti, varargin)
 %
 %% default setting
 testmode = false;
-
 USE_EYELINK = false;
 USE_BIOPAC = false;
 savedir = fullfile(pwd, 'data');
-
 scriptdir = pwd; % modify this
+psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
+
+addpath(genpath(psychtoolboxdir));
+addpath(genpath(pwd));
 
 %% parsing varargin
 for i = 1:length(varargin)
@@ -118,14 +120,14 @@ orange = [255 164 0];
     [fname, start_line, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
     
     % add some task information
-    data.version = 'FAST_fmri_task_v1_11-15-2017';
+    data.version = 'FAST_fmri_task_v1_11-16-2017';
     data.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     data.subject = SID;
     data.session = SessID;
     data.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
     data.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     data.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-    data.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '_sess' SessID '.mat']);
+    data.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
     data.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
     data.exp_starttime = datestr(clock, 0); % date-time: timestamp
     data.isiiti = isi_iti;
@@ -137,41 +139,14 @@ orange = [255 164 0];
 
 % need to be revised when the eyelink is here.
 if USE_EYELINK
-    edf_filename = ['Rest_sub' SID '_sess' SessID];
-    % from eyelink_main function
-    commandwindow;
-    dummymode = 0;
-    el = EyelinkInitDefaults(theWindow);
-    edfFile = sprintf('%s.edf', edf_filename);
-
-    if ~EyelinkInit(dummymode)
-        fprintf('Eyelink Init aborted. Cannot connect to Eyelink\n');
-        Eyelink('Shutdown');
-        Screen('CloseAll');
-        commandwindow;
-        return;
-    end
-
-    Eyelink('command', 'link_sample_data  = LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS,INPUT');
-    Eyelink('Openfile', edfFile);
-
-    if Eyelink('IsConnected')~=1 && dummymode == 0
-        fprintf('not connected at step 5, clean up\n');
-        Eyelink('Shutdown');
-        Screen('CloseAll');
-        commandwindow;
-        return;
-    end
-
-    EyelinkDoTrackerSetup(el); % calibration
-    EyelinkDoDriftCorrection(el); % add from Song, driftcorrection
-    % ....
-
+    edf_filename = ['YWG_' SID '_' SessID]; % name should be equal or less than 8
+    edfFile = sprintf('%s.EDF', edf_filename);
+    eyelink_main(edfFile, 'Init');
+    
     status = Eyelink('Initialize');
     if status
         error('Eyelink is not communicating with PC. Its okay baby.');
     end
-
     Eyelink('Command', 'set_idle_mode');
     waitsec_fromstarttime(GetSecs, .5);
 end
@@ -365,7 +340,7 @@ try
             Screen(theWindow,'FillRect',bgcolor, window_rect);
             Screen('Flip', theWindow);
             
-            waitsec_fromstarttime(data.dat{ts_i}.iti_starttime, wordT+ts{ts_i}{2}+cqT+3+ts{ts_i}{4});
+            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2}+cqT+3+ts{ts_i}{4});
         end
               
         % save data every even trial
@@ -382,6 +357,7 @@ try
     Screen('Flip', theWindow);
     if USE_EYELINK
         Eyelink('Message','Task Run End');
+        eyelink_main(edfFile, 'Shutdown');
     end
     
     save(data.taskfile, 'data', '-append');

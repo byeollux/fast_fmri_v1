@@ -5,7 +5,6 @@ global W H white theWindow window_rect bgcolor bodymap recsize rec linexy;
 whole = false;
 practice1 = false;
 practice2 = false;
-resting = false;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -17,8 +16,6 @@ for i = 1:length(varargin)
                 practice1 = true;
             case {'practice2'}
                 practice2 = true;
-            case {'resting'}
-                resting = true;
         end
     end
 end
@@ -81,7 +78,6 @@ title = title(:,z);
 % end
 
 %% locations of the two words
-if ~resting
     interval = 150;
     Screen('TextSize', theWindow, 30);
     response_W(1) = Screen(theWindow, 'DrawText', double(words{target_i,seeds_i}), 0, 0);
@@ -89,7 +85,6 @@ if ~resting
     
     x(1) = W/2 - interval/2 - response_W(1) - response_W(2)/2;
     x(2) = W/2 + interval/2 - response_W(2)/2;
-end 
 fontsize = [35, 55, 27, 23]; % Word1, W2, title(1,:), title(2~4,:)
 
 %%
@@ -157,26 +152,7 @@ elseif practice2
     for i = 1:numel(body_prompt)
         DrawFormattedText(theWindow, double(body_prompt{i}), 'center', H/3+50*i, ...
             white, [], [], [], [], [], [0 H/4 W*4/5 H*2/3]);
-    end
-    
-elseif resting
-    Screen(theWindow, 'FillRect', bgcolor, window_rect);
-    Screen('DrawLines',theWindow, linexy, 3, 255);
-    for i = 1:numel(title(1,:))
-        % prompt 
-        Screen('TextSize', theWindow, 30);
-        DrawFormattedText(theWindow, words, 'center', H/7, white, [], [], [], 1.5);
-        % scale letter
-        Screen('TextSize', theWindow, 22);
-        DrawFormattedText(theWindow, double(title{2,i}),'center', 'center', white, [],[],[],[],[],...
-            [linexy(1,2*i-1)-15, linexy(2,2*i-1), linexy(1,2*i-1)+20, linexy(2,2*i-1)+60]);
-        DrawFormattedText(theWindow, double(title{3,i}),'center', 'center', white, [],[],[],[],[],...
-            [rec(i,1)+recsize(1)/3, linexy(2,2*i-1), rec(i,1)+recsize(1)*2/3, linexy(2,2*i-1)+60]);
-        DrawFormattedText(theWindow, double(title{4,i}),'center', 'center', white, [],[],[],[],[],...
-            [linexy(1,2*i)-20, linexy(2,2*i-1), linexy(1,2*i)+15, linexy(2,2*i-1)+60]);
-        DrawFormattedText(theWindow, double(title{6,i}),'center', 'center', white, [],[],[],[],[],...
-            [rec(i,1), rec(i,2)+5, rec(i,1)+recsize(1), rec(i,2)+recsize(2)/2]);
-    end
+    end    
 else
     error('Unknown input');    
 end

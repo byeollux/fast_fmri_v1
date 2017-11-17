@@ -53,9 +53,7 @@ USE_EYELINK = false;
 USE_BIOPAC = false;
 savedir = fullfile(pwd, 'data');
 scriptdir = pwd; % modify this
-psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
 
-addpath(genpath(psychtoolboxdir));
 addpath(genpath(pwd));
 
 %% parsing varargin
@@ -67,8 +65,6 @@ for i = 1:length(varargin)
                 testmode = true;
             case {'savedir'}
                 savedir = varargin{i+1};
-            case {'scriptdir'}
-                scriptdir = varargin{i+1};
             case {'eyelink', 'eye', 'eyetrack'}
                 USE_EYELINK = true;
             case {'biopac'}
@@ -79,8 +75,6 @@ for i = 1:length(varargin)
         end
     end
 end
-
-cd(scriptdir);
 
 %% SETUP: global
 global theWindow W H; % window property
@@ -114,6 +108,10 @@ white = 255;
 red = [189 0 38];
 blue = [0 85 169];
 orange = [255 164 0];
+
+wordT = 15;     % duration for showing target words
+rT = 8;         % duration for rating
+cqT = 8;        % duration for question of concentration
 
 %% SETUP: DATA and Subject INFO
 
@@ -175,11 +173,8 @@ try
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
     
     %% PRACTICE RATING: Test trackball, Practice emotion rating
-    wordT = 15;     % duration for showing target words
-    rT = 8;         % duration for rating
-    cqT = 8;        % duration for question of concentration
-
-    % viewing the practice prompt until click. 
+    if str2double(SessID) ==1
+        % viewing the practice prompt until click.
         while (1)
             [~, ~, button] = GetMouse(theWindow);
             [~,~,keyCode] = KbCheck;
@@ -202,6 +197,7 @@ try
         DrawFormattedText(theWindow, run_end_prompt, 'center', 'center', white, [], [], [], 1.5);
         Screen('Flip', theWindow);
         WaitSecs(2);
+    end
         
     
     %% DISPLAY PRESCAN MESSAGE
@@ -355,11 +351,17 @@ try
     Screen(theWindow,'FillRect',bgcolor, window_rect);
     DrawFormattedText(theWindow, run_end_prompt, 'center', 'center', white, [], [], [], 1.5);
     Screen('Flip', theWindow);
+    
     if USE_EYELINK
         Eyelink('Message','Task Run End');
         eyelink_main(edfFile, 'Shutdown');
     end
-    
+    if USE_BIOPAC
+        rest.dat{n}.biopac_endtime = GetSecs; % biopac timestamp
+        BIOPAC_trigger(ljHandle, biopac_channel, 'on');
+        waitsec_fromstarttime(rest.dat{n}.biopac_endtime, 1);
+        BIOPAC_trigger(ljHandle, biopac_channel, 'off');
+    end
     save(data.taskfile, 'data', '-append');
     
     WaitSecs(2);
@@ -541,9 +543,8 @@ function [concentration, trajectory_time, trajectory] = concent_rating(starttime
 global W H orange bgcolor window_rect theWindow red fontsize white cqT
 intro_prompt1 = double('지금, 나타나는 단어들에 대해 얼마나 주의를 잘 기울이고 계신가요?');
 intro_prompt2 = double('8초 안에 트랙볼을 움직여서 집중하고 있는 정도를 클릭해주세요.');
-end_prompt = double('과제가 다시 이어집니다. 집중해주세요.');
-
 title={'전혀 기울이지 않음','보통', '매우 집중하고 있음'};
+end_prompt = double('과제가 다시 이어집니다. 집중해주세요.');
 
 SetMouse(W/4, H/2);
 

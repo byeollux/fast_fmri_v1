@@ -2,9 +2,9 @@
 %% Sess 1
     %% Resting & Word Generation
     fast_fmri_resting(0.01,'test');       % practice resting
-    % fast_fmri_resting(6, 'biopac','eyelink');       % 6 min restingrara
-    fast_fmri_word_generation(seeds_rand{1},'test','biopac','eyelink');
-    % fast_fmri_resting(2, 'biopac','eyelink')        % 2 min resting
+    % fast_fmri_resting(6, 'biopac','eye');       % 6 min restingrara
+    fast_fmri_word_generation(seeds_rand{1},'test','biopac','eye');
+    % fast_fmri_resting(2, 'biopac','eye')        % 2 min resting
 
     %% Transcribe
     fast_fmri_transcribe_responses('nosound') % while running fast_fmri_word_generation
@@ -14,7 +14,7 @@
     [ts, isi_iti] = fast_fmri_generate_ts;
     
     fast_fmri_task_main(ts, isi_iti,'test','practice');
-    fast_fmri_task_main(ts, isi_iti, 'test','biopac','eyelink');
+    fast_fmri_task_main(ts, isi_iti, 'test','biopac','eye');
 
     %% Whole words list & Survey
     words = fast_fmri_wholewords;

@@ -102,8 +102,6 @@ for i = 1:length(varargin)
                 savedir = varargin{i+1};
             case {'repeat'}
                 response_repeat = varargin{i+1};
-            case {'psychtoolbox'}
-                psychtoolboxdir = varargin{i+1};
             case {'savewav'}
                 savewav = true;
         end
@@ -160,7 +158,7 @@ if ~practice_mode % if not practice mode, save the data
     out.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
     out.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
     out.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
-    out.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
+    out.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
     out.exp_starttime = datestr(clock, 0); % date-time: timestamp
     out.seed = seed; % date-time: timestamp
     
@@ -204,8 +202,8 @@ try
     intro_prompt{1} = double('지금부터 말하기 과제를 시작하겠습니다.');
     intro_prompt{2} = double('2.5초마다 벨이 울리면 바로 떠오르는 단어나 문장을 말씀해주세요.');
     intro_prompt{3} = double('떠오르지 않을 경우 전에 말한 내용을 반복해서 말할 수 있습니다.');
-    intro_prompt{4} = double('말을 할 때에는 또박또박 말씀해주세요');
-    intro_prompt{6} = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n\n모두 준비되었으면, 스페이스바를 눌러주세요.');
+    intro_prompt{4} = double('말을 할 때에는 또박또박 크게 말씀해주세요');
+    intro_prompt{7} = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
     
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
@@ -215,7 +213,7 @@ try
     end
     
     %% TEST RECORDING... and play
-   
+   if str2double(SessID) == 1
         % Recording Setting
         InitializePsychSound;
         pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
@@ -274,11 +272,6 @@ try
             out.test_audiodata{n} = PsychPortAudio('GetAudioData', pahandle);
         end
         
-        Screen('FillRect', theWindow, bgcolor, window_rect);
-        Screen('TextSize', theWindow, fontsize); % emphasize
-        DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
-        Screen('Flip', theWindow);
-        
         PsychPortAudio('Close', pahandle);
         save(out.wordfile, 'out');
         
@@ -286,18 +279,18 @@ try
         load(dat_file);
         
         Screen('FillRect', theWindow, bgcolor, window_rect);
-        Screen('TextSize', theWindow, fontsize); % emphasize
+        Screen('TextSize', theWindow, fontsize); 
         DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
         Screen('Flip', theWindow);
         
         % play the 3 sounds
         for z=1:3
-            WaitSecs(0.5);
+            WaitSecs(0.2);
             players = audioplayer(out.test_audiodata{z}', 44100);
             play(players);
             WaitSecs(3);
         end
-    
+   end
     
     %% DISPLAY EXP START MESSAGE
     while (1)
@@ -309,7 +302,7 @@ try
         end
         Screen(theWindow,'FillRect',bgcolor, window_rect);
         for i = 1:numel(intro_prompt)
-            DrawFormattedText(theWindow, intro_prompt{i},'center', textH-40*(2-i), white);
+            DrawFormattedText(theWindow, intro_prompt{i},'center', textH-40*(3-i), white);
         end
         Screen('Flip', theWindow);
     end
@@ -360,7 +353,7 @@ try
     end
     
     %% SOUND RECORDING INIT
-%     InitializePsychSound; % it's saved in run_FAST_fmri_main.m because it
+    InitializePsychSound; % it's saved in run_FAST_fmri_main.m because it
                             % should be run only once for the entire scan.
                             % Maybe, with windows, we can have this here.
                             
@@ -428,10 +421,7 @@ try
         end
 
     end
-    if USE_EYELINK
-        Eyelink('Message','WG Run end');
-        eyelink_main(edfFile, 'Shutdown');       
-    end
+
     
     %% RUN END MESSAGE
         Screen(theWindow, 'FillRect', bgcolor, window_rect);
@@ -442,6 +432,16 @@ try
         if ~practice_mode
             out.response{1} = seed;
             save(out.wordfile, 'out');
+            if USE_EYELINK
+                Eyelink('Message','WG Run end');
+                eyelink_main(edfFile, 'Shutdown');
+            end
+            if USE_BIOPAC
+                rest.dat{n}.biopac_endtime = GetSecs; % biopac timestamp
+                BIOPAC_trigger(ljHandle, biopac_channel, 'on');
+                waitsec_fromstarttime(rest.dat{n}.biopac_endtime, 1);
+                BIOPAC_trigger(ljHandle, biopac_channel, 'off');
+            end
         end
         
     %% Close the audio device:
@@ -455,7 +455,7 @@ try
     end
     
     % close screen
-    WaitSecs(2);
+    WaitSecs(1);
     
     ShowCursor; %unhide mouse
     Screen('CloseAll'); %relinquish screen control

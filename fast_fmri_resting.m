@@ -188,9 +188,9 @@ try
         intro_prompt{1} = double('이제 2분간 쉬는 동안의 뇌 활동을 찍는 과제를 하겠습니다.');
     else
     intro_prompt{1} = double('이제 6분간 쉬는 동안의 뇌 활동을 찍는 과제를 하겠습니다.');
+    end
     intro_prompt{2} = double('이 과제에서는 눈은 자연스럽게 떠 주시고 화면을 바라봐 주세요.');
-    intro_prompt{3} = double('시작하시려면 버튼을 눌러주세요.');
-    end 
+    intro_prompt{3} = double('시작하시려면 버튼을 눌러주세요.'); 
     
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');

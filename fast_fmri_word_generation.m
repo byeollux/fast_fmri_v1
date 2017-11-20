@@ -143,8 +143,6 @@ orange = [255 164 0];
 
 %% SETUP: DATA and Subject INFO
 
-if ~practice_mode % if not practice mode, save the data
-    
     [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'word'); % subfunction
     
     if exist(fname, 'file'), load(fname, 'out'); end
@@ -168,7 +166,7 @@ if ~practice_mode % if not practice mode, save the data
     % initial save the data
     save(out.wordfile, 'out');
     save(out.responsefile, 'response');
-end
+
 
     %% START: Screen
     theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
@@ -208,12 +206,8 @@ try
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
     
-    if practice_mode 
-        response_repeat = 5;
-    end
-    
     %% TEST RECORDING... and play
-   if str2double(SessID) == 1
+   if practice_mode
         % Recording Setting
         InitializePsychSound;
         pahandle = PsychPortAudio('Open', [], 2, 0, 44100, 2);
@@ -290,6 +284,9 @@ try
             play(players);
             WaitSecs(3);
         end
+        
+        WaitSecs(3);
+        Screen('CloseAll');
    end
     
     %% DISPLAY EXP START MESSAGE
@@ -428,22 +425,19 @@ try
         DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
         Screen('Flip', theWindow);
         
-        % if not practice mode, save the data
-        if ~practice_mode
-            out.response{1} = seed;
-            save(out.wordfile, 'out');
-            if USE_EYELINK
-                Eyelink('Message','WG Run end');
-                eyelink_main(edfFile, 'Shutdown');
-            end
-            if USE_BIOPAC
-                rest.dat{n}.biopac_endtime = GetSecs; % biopac timestamp
-                BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-                waitsec_fromstarttime(rest.dat{n}.biopac_endtime, 1);
-                BIOPAC_trigger(ljHandle, biopac_channel, 'off');
-            end
+        out.response{1} = seed;
+        save(out.wordfile, 'out');
+        if USE_EYELINK
+            Eyelink('Message','WG Run end');
+            eyelink_main(edfFile, 'Shutdown');
         end
-        
+        if USE_BIOPAC
+            rest.dat{n}.biopac_endtime = GetSecs; % biopac timestamp
+            BIOPAC_trigger(ljHandle, biopac_channel, 'on');
+            waitsec_fromstarttime(rest.dat{n}.biopac_endtime, 1);
+            BIOPAC_trigger(ljHandle, biopac_channel, 'off');
+        end
+            
     %% Close the audio device:
     
     PsychPortAudio('Close', pahandle);

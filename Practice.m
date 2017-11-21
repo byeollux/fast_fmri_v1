@@ -14,18 +14,13 @@ global window_rect; % rating scale
 
 bgcolor = 100;
 
-if testmode
-    window_rect = [0 0 1280 800]; % in the test mode, use a little smaller screen
-else
-    % these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
-    % screen, these are nessecary and different from Wani's version.
-    screens = Screen('Screens');
-    window_num = screens(1);
-    Screen('Preference', 'SkipSyncTests', 1);
-    window_info = Screen('Resolution', window_num);
-    window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
-end
-
+% these 5 lines are from CAPS. In case of fMRI+ThinkPad+full
+% screen, these are nessecary and different from Wani's version.
+screens = Screen('Screens');
+window_num = screens(1);
+Screen('Preference', 'SkipSyncTests', 1);
+window_info = Screen('Resolution', window_num);
+window_rect = [0 0 window_info.width window_info.height]; %0 0 1920 1080
 
 W = window_rect(3); % width of screen
 H = window_rect(4); % height of screen
@@ -56,7 +51,7 @@ try
     intro_prompt{4} = double('말을 할 때에는 또박또박 크게 말씀해주세요');
     
     exseed = {'초콜렛', '학교', '달력'};
-    rating_prompt = double('현재의 감정과 가장 가까운 감정을 골라주세요.');
+    rating_prompt = double('현재의 감정과 가장 가까운 감정을 8초 안에 신속하게 골라주세요.\n\n정서 단어를 기억하려고 해보세요.');
     run_end_prompt = double('잘하셨습니다.');
     
     %% TASK   

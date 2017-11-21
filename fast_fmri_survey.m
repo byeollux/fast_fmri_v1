@@ -64,7 +64,7 @@ W = window_rect(3); %width of screen
 H = window_rect(4); %height of screen
 textH = H/2.3;
 
-font = 'NanumGothic';
+font = 'NanumBarunGothic';
 fontsize = 25;
 
 white = 255;

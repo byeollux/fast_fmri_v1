@@ -300,6 +300,8 @@ try
         H/2 H/2 H/2-7 H/2+7 H/2-7 H/2+7 H/2-7 H/2+7];
     linexy2 = [W*3/8 W*5/8 W*3/8 W*3/8 W*5/8 W*5/8;
         H/2 H/2 H/2-7 H/2+7 H/2-7 H/2+7];
+    rng('shuffle'); 
+    z = randperm(5);
     
     if n > 1        % 2nd ~ 5th resting, ask association-related
         rest.dat{n}.rating{1,6} = 'Association-related';
@@ -356,8 +358,9 @@ try
         end
     end
     
+    
     for i = 1:(numel(title(1,:))-1)
-        if mod(i,2) % odd number, valence, time, safe&threat
+        if mod(z(i),2) % odd number, valence, time, safe&threat
             question_start = GetSecs;
             SetMouse(W/2, H/2);
             
@@ -372,30 +375,30 @@ try
                 end
                 Screen(theWindow, 'FillRect', bgcolor, window_rect);
                 Screen('DrawLines',theWindow, linexy1, 3, 255);
-                DrawFormattedText(theWindow, double(title{1,i}), 'center', tb, white, [], [], [], 1.5);
-                DrawFormattedText(theWindow, double(title{2,i}),'center', 'center', white, [],[],[],[],[],...
+                DrawFormattedText(theWindow, double(title{1,z(i)}), 'center', tb, white, [], [], [], 1.5);
+                DrawFormattedText(theWindow, double(title{2,z(i)}),'center', 'center', white, [],[],[],[],[],...
                     [linexy1(1,1)-15, linexy1(2,1)+20, linexy1(1,1)+20, linexy1(2,1)+80]);
-                DrawFormattedText(theWindow, double(title{3,i}),'center', 'center', white, [],[],[],[],[],...
+                DrawFormattedText(theWindow, double(title{3,z(i)}),'center', 'center', white, [],[],[],[],[],...
                     [W/2-15, linexy1(2,1)+20, W/2+20, linexy1(2,1)+80]);
-                DrawFormattedText(theWindow, double(title{4,i}),'center', 'center', white, [],[],[],[],[],...
+                DrawFormattedText(theWindow, double(title{4,z(i)}),'center', 'center', white, [],[],[],[],[],...
                     [linexy1(1,2)-15, linexy1(2,1)+20, linexy1(1,2)+20, linexy1(2,1)+80]);
                 
                 Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
                 Screen('Flip', theWindow);
                 
                 if button(1)
-                    rest.dat{n}.rating{2,i} = (x-W/2)/(W/4);
-                    rest.dat{n}.rating{3,i} = GetSecs-question_start;
+                    rest.dat{n}.rating{2,z(i)} = (x-W/2)/(W/4);
+                    rest.dat{n}.rating{3,z(i)} = GetSecs-question_start;
                     
                     Screen(theWindow, 'FillRect', bgcolor, window_rect);
                     Screen('DrawLines',theWindow, linexy1, 3, 255);
-                    DrawFormattedText(theWindow, double(title{1,i}), 'center', tb, white, [], [], [], 1.5);
+                    DrawFormattedText(theWindow, double(title{1,z(i)}), 'center', tb, white, [], [], [], 1.5);
                     
-                    DrawFormattedText(theWindow, double(title{2,i}),'center', 'center', white, [],[],[],[],[],...
+                    DrawFormattedText(theWindow, double(title{2,z(i)}),'center', 'center', white, [],[],[],[],[],...
                         [linexy1(1,1)-15, linexy1(2,1)+20, linexy1(1,1)+20, linexy1(2,1)+80]);
-                    DrawFormattedText(theWindow, double(title{3,i}),'center', 'center', white, [],[],[],[],[],...
+                    DrawFormattedText(theWindow, double(title{3,z(i)}),'center', 'center', white, [],[],[],[],[],...
                         [W/2-15, linexy1(2,1)+20, W/2+20, linexy1(2,1)+80]);
-                    DrawFormattedText(theWindow, double(title{4,i}),'center', 'center', white, [],[],[],[],[],...
+                    DrawFormattedText(theWindow, double(title{4,z(i)}),'center', 'center', white, [],[],[],[],[],...
                         [linexy1(1,2)-15, linexy1(2,1)+20, linexy1(1,2)+20, linexy1(2,1)+80]);
                     
                     Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
@@ -424,31 +427,31 @@ try
                 
                 Screen(theWindow, 'FillRect', bgcolor, window_rect);
                 Screen('DrawLines',theWindow, linexy2, 3, 255);
-                DrawFormattedText(theWindow, double(title{1,i}), 'center', tb, white, [], [], [], 1.5);
+                DrawFormattedText(theWindow, double(title{1,z(i)}), 'center', tb, white, [], [], [], 1.5);
                 
-                DrawFormattedText(theWindow, double(title{2,i}),'center', 'center', white, [],[],[],[],[],...
+                DrawFormattedText(theWindow, double(title{2,z(i)}),'center', 'center', white, [],[],[],[],[],...
                     [linexy2(1,1)-15, linexy2(2,1)+20, linexy2(1,1)+20, linexy2(2,1)+80]);
-                DrawFormattedText(theWindow, double(title{3,i}),'center', 'center', white, [],[],[],[],[],...
+                DrawFormattedText(theWindow, double(title{3,z(i)}),'center', 'center', white, [],[],[],[],[],...
                     [W/2-15, linexy2(2,1)+20, W/2+20, linexy2(2,1)+80]);
-                DrawFormattedText(theWindow, double(title{4,i}),'center', 'center', white, [],[],[],[],[],...
+                DrawFormattedText(theWindow, double(title{4,z(i)}),'center', 'center', white, [],[],[],[],[],...
                     [linexy2(1,2)-15, linexy2(2,1)+20, linexy2(1,2)+20, linexy2(2,1)+80]);
                 
                 Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
                 Screen('Flip', theWindow);
                 
                 if button(1)
-                    rest.dat{n}.rating{2,i} = (x-W*3/8)/(W/4);
-                    rest.dat{n}.rating{3,i} = GetSecs-question_start;
+                    rest.dat{n}.rating{2,z(i)} = (x-W*3/8)/(W/4);
+                    rest.dat{n}.rating{3,z(i)} = GetSecs-question_start;
                     
                     Screen(theWindow, 'FillRect', bgcolor, window_rect);
                     Screen('DrawLines',theWindow, linexy2, 3, 255);
-                    DrawFormattedText(theWindow, double(title{1,i}), 'center', tb, white, [], [], [], 1.5);
+                    DrawFormattedText(theWindow, double(title{1,z(i)}), 'center', tb, white, [], [], [], 1.5);
                     
-                    DrawFormattedText(theWindow, double(title{2,i}),'center', 'center', white, [],[],[],[],[],...
+                    DrawFormattedText(theWindow, double(title{2,z(i)}),'center', 'center', white, [],[],[],[],[],...
                         [linexy2(1,1)-15, linexy2(2,1)+20, linexy2(1,1)+20, linexy2(2,1)+80]);
-                    DrawFormattedText(theWindow, double(title{3,i}),'center', 'center', white, [],[],[],[],[],...
+                    DrawFormattedText(theWindow, double(title{3,z(i)}),'center', 'center', white, [],[],[],[],[],...
                         [W/2-15, linexy2(2,1)+20, W/2+20, linexy2(2,1)+80]);
-                    DrawFormattedText(theWindow, double(title{4,i}),'center', 'center', white, [],[],[],[],[],...
+                    DrawFormattedText(theWindow, double(title{4,z(i)}),'center', 'center', white, [],[],[],[],[],...
                         [linexy2(1,2)-15, linexy2(2,1)+20, linexy2(1,2)+20, linexy2(2,1)+80]);
                     
                     Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);

@@ -8,6 +8,7 @@
 
         %% repeat 4 times
         fast_fmri_word_generation(seeds_rand{1},'biopac','eye');
+        
         fast_fmri_resting(2, 'biopac','eye')        % 2 min resting
     
         
@@ -24,7 +25,7 @@
     fast_fmri_transcribe_responses('only_na') % after running fast_fmri_word_generation
     
             %% if you want to revise already written items.
-            response{#,1} = '하나';
+            response{#,1} = '';
             save(fullfile(fullfile(pwd, 'data'), ['b_responsedata_sub#_sess#.mat']),'response')
 
             
@@ -42,7 +43,8 @@
 
 
 %% RUN ONCE for the experiment
-seeds = {'학대', '아픔', '거울', '눈물', '데이트', '사랑'};
-seeds = {'출혈', '게으름', '보석', '환상', '마음', '가족'};
+seeds = {'학대', '거울', '눈물','가족'};
+% seeds = {'아픔', '마음', '환상','사랑'};
+% seeds = {'출혈', '게으름', '보석', '환상', '마음', '가족','학대', '아픔', '거울', '눈물', '데이트', '사랑'};
 seeds_rand = seeds(randperm(numel(seeds)));
-% seeds_rand = {'학대', '아픔', '거울', '눈물', '데이트', '사랑'};
+% seeds_rand = {'학대', '아픔', '거울', '눈물'};

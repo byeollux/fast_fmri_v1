@@ -142,7 +142,7 @@ red = [158 1 66];
 orange = [255 164 0];
 
 %% SETUP: DATA and Subject INFO
-
+if ~practice_mode
     [fname, ~, SID, SessID] = subjectinfo_check(savedir, 'word'); % subfunction
     
     if exist(fname, 'file'), load(fname, 'out'); end
@@ -166,7 +166,7 @@ orange = [255 164 0];
     % initial save the data
     save(out.wordfile, 'out');
     save(out.responsefile, 'response');
-
+end
 
     %% START: Screen
     theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
@@ -267,10 +267,6 @@ try
         end
         
         PsychPortAudio('Close', pahandle);
-        save(out.wordfile, 'out');
-        
-        dat_file = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-        load(dat_file);
         
         Screen('FillRect', theWindow, bgcolor, window_rect);
         Screen('TextSize', theWindow, fontsize); 

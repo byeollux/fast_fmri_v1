@@ -1,4 +1,4 @@
-function data = fast_fmri_task_main(ts, isi_iti, varargin)
+function taskdata = fast_fmri_task_main(ts, isi_iti, varargin)
 
 % Run thinking and rating step of Free Association Semantic Task with the fMRI scannin g. 
 %
@@ -10,7 +10,7 @@ function data = fast_fmri_task_main(ts, isi_iti, varargin)
 % :Inputs:
 %
 %   **ts:**
-%        [W1, W2, isi, iti, iti2]  : isi & iti = 3, 4, 6, 9 secs
+%        [W1, W2, isi, iti, iti2]  : isi & iti = 3, 4, 6, 9 secsx
 %
 % :Optional Inputs: Enter keyword followed by variable with values
 %
@@ -109,8 +109,8 @@ red = [189 0 38];
 blue = [0 85 169];
 orange = [255 164 0];
 
-wordT = 15;     % duration for showing target words
-rT = 8;         % duration for rating
+wordT = .5;     % duration for showing target words
+rT = 10;         % duration for rating
 cqT = 8;        % duration for question of concentration
 
 %% SETUP: DATA and Subject INFO
@@ -118,20 +118,20 @@ cqT = 8;        % duration for question of concentration
     [~, ~, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
     
     % add some task information
-    data.version = 'FAST_fmri_task_v1_11-16-2017';
-    data.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
-    data.subject = SID;
-    data.session = SessID;
-    data.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
-    data.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
-    data.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
-    data.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
-    data.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sess' SessID '.mat']);
-    data.exp_starttime = datestr(clock, 0); % date-time: timestamp
-    data.isiiti = isi_iti;
+    taskdata.version = 'FAST_fmri_task_v1_11-16-2017';
+    taskdata.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
+    taskdata.subject = SID;
+    taskdata.session = SessID;
+    taskdata.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
+    taskdata.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
+    taskdata.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sess' SessID '.mat']);
+    taskdata.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
+    taskdata.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
+    taskdata.exp_starttime = datestr(clock, 0); % date-time: timestamp
+    taskdata.isiiti = isi_iti;
     
     % initial save of trial sequence and data
-    save(data.taskfile, 'data');
+    save(taskdata.taskfile, 'taskdata');
     
     %% START: Screen
     theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
@@ -161,14 +161,11 @@ cqT = 8;        % duration for question of concentration
 
 try
     %% PROMPT SETUP:
-    practice_prompt = double('연습을 해보겠습니다.\n여러 개의 감정 단어들이 나타나면 8초 안에\n트랙볼로 커서를 움직여 아무 단어나 클릭하시면 됩니다.\n\n준비되셨으면 버튼을 눌러주세요');
-    pre_scan_prompt{1} = double('이제부터 여러분이 방금 말씀하셨던 단어들을 순서대로 보게 될 것입니다.');
-    pre_scan_prompt{2} = double('각 단어들을 15초 동안 보여드릴텐데 그 시간동안 그 단어들이');
-    pre_scan_prompt{3} = double('여러분에게 어떤 의미로 다가오는지 자연스럽게 생각해보시기 바랍니다.');
-    pre_scan_prompt{4} = double('이후 여러 개의 감정 단어들이 등장하면 8초 안에');
-    pre_scan_prompt{5} = double('여러분이 현재 느끼는 감정과 가장 가까운 단어를 선택하시면 됩니다.');
-    pre_scan_prompt{6} = double('\n준비되셨으면 버튼을 클릭해주세요.');
-    exp_start_prompt = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
+    practice_prompt = double('연습을 해보겠습니다.\n여러 개의 감정 단어들이 나타나면 10초 안에\n트랙볼로 커서를 움직여 아무 단어나 클릭하시면 됩니다.\n\n준비되셨으면 버튼을 눌러주세요');
+    exp_start_prompt{1} = double('이제부터 여러분이 방금 말씀하셨던 단어들을 순서대로 보게 될 것입니다.');
+    exp_start_prompt{2} = double('각 단어들을 15초 동안 보여드릴텐데 그 시간동안 그 단어들이');
+    exp_start_prompt{3} = double('여러분에게 어떤 의미로 다가오는지 자연스럽게 생각해보시기 바랍니다.');
+    exp_start_prompt{4} = double('\n실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n\n모두 준비되었으면, 스페이스바를 눌러주세요.');
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
     
@@ -188,35 +185,12 @@ try
             DrawFormattedText(theWindow, practice_prompt, 'center', 'center', white, [], [], [], 1.5);
             Screen('Flip', theWindow);
         end
-        WaitSecs(.3)
+        WaitSecs(.1)
         emotion_rating(GetSecs); % sub-function: 8s
-        concent_rating(GetSecs); % sub-function: 11s
         
-        % practice end
-        Screen(theWindow,'FillRect',bgcolor, window_rect);
-        DrawFormattedText(theWindow, run_end_prompt, 'center', 'center', white, [], [], [], 1.5);
-        Screen('Flip', theWindow);
-        WaitSecs(2);
+        WaitSecs(1);
     end
         
-    
-    %% DISPLAY PRESCAN MESSAGE
-    while (1)
-        [~, ~, button] = GetMouse(theWindow);
-        [~,~,keyCode] = KbCheck;
-        
-        if button(1)
-            break
-        elseif keyCode(KbName('q'))==1
-            abort_man;
-        end
-        Screen(theWindow,'FillRect',bgcolor, window_rect);
-        for i = 1:numel(pre_scan_prompt)
-            DrawFormattedText(theWindow, pre_scan_prompt{i},'center', textH-40*(2-i), white);
-        end
-        Screen('Flip', theWindow);
-    end
-    
     %% DISPLAY EXP START MESSAGE
     while (1)
         [~,~,keyCode] = KbCheck;
@@ -227,7 +201,9 @@ try
             abort_man;
         end
         Screen(theWindow,'FillRect',bgcolor, window_rect);
-        DrawFormattedText(theWindow, exp_start_prompt, 'center', 'center', white, [], [], [], 1.5);
+        for i = 1:numel(exp_start_prompt)
+            DrawFormattedText(theWindow, exp_start_prompt{i},'center', textH-40*(2-i), white);
+        end
         Screen('Flip', theWindow);
     end
     
@@ -250,11 +226,11 @@ try
     
     % gap between 's' key push and the first stimuli (disdaqs: data.disdaq_sec)
     % 4 seconds: "시작합니다..."
-    data.runscan_starttime = GetSecs; % run start timestamp
+    taskdata.runscan_starttime = GetSecs; % run start timestamp
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, double('시작합니다...'), 'center', 'center', white, [], [], [], 1.2);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(data.runscan_starttime, 4);
+    waitsec_fromstarttime(taskdata.runscan_starttime, 4);
     
     % Blank
     Screen(theWindow,'FillRect',bgcolor, window_rect);
@@ -264,84 +240,100 @@ try
     
     if USE_EYELINK
         Eyelink('StartRecording');
-        data.eyetracker_starttime = GetSecs; % eyelink timestamp
+        taskdata.eyetracker_starttime = GetSecs; % eyelink timestamp
         Eyelink('Message','Task Run start');
     end
         
     if USE_BIOPAC
-        data.biopac_starttime = GetSecs; % biopac timestamp
+        taskdata.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(data.biopac_starttime, 1);
+        waitsec_fromstarttime(taskdata.biopac_starttime, 1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
     % 10 seconds from the runstart
-    waitsec_fromstarttime(data.runscan_starttime, 10);
+    waitsec_fromstarttime(taskdata.runscan_starttime, 10);
     
     
     %% MAIN TASK 1. SHOW 2 WORDS, WORD PROMPT
     for ts_i = 1:numel(ts)   % repeat for 40 trials
-        data.dat{ts_i}.trial_starttime = GetSecs; % trial start timestamp
+        taskdata.dat{ts_i}.trial_starttime = GetSecs; % trial start timestamp
         display_target_word(ts{ts_i}{1}); % sub-function, display two generated words
         if USE_EYELINK
             Eyelink('Message','Task Words present');
         end
-        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT); % for 15s
-        
+        waitsec_fromstarttime(taskdata.dat{ts_i}.trial_starttime, wordT); % for 15s
          
         % Blank for ISI
-        data.dat{ts_i}.isi_starttime = GetSecs;  % ISI start timestamp
+        taskdata.dat{ts_i}.isi_starttime = GetSecs;  % ISI start timestamp
         Screen(theWindow,'FillRect',bgcolor, window_rect);
         Screen('Flip', theWindow);
         if USE_EYELINK
-            Eyelink('Message','Task ISI blank');
+            Eyelink('Message','ISI blank');
         end
-        waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2});
+        waitsec_fromstarttime(taskdata.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2});
+        
         
         % Emotion Rating
-        if ts{ts_i}{3} ~=0   % if 3rd column of ts is not 0, do rating for 5s
+        if ts{ts_i}{3} ~= 0 && ts_i ~= 20  % if 3rd column of ts is not 0, do rating for 10s
             if USE_EYELINK
-                Eyelink('Message','Task Rating present');
+                Eyelink('Message','Rating present');
             end
-            data.dat{ts_i}.rating_starttime = GetSecs;  % rating start timestamp
-            [data.dat{ts_i}.rating_emotion_word, data.dat{ts_i}.rating_trajectory_time, ...
-             data.dat{ts_i}.rating_trajectory] = emotion_rating(data.dat{ts_i}.rating_starttime); % sub-function
-            
-            
+            taskdata.dat{ts_i}.emotion_starttime = GetSecs;  % rating start timestamp
+            [taskdata.dat{ts_i}.emotion_word, taskdata.dat{ts_i}.emotion_time, ...
+             taskdata.dat{ts_i}.emotion_trajectory] = emotion_rating(taskdata.dat{ts_i}.emotion_starttime); % sub-function
+                        
             % Blank for ITI
             if USE_EYELINK
-                Eyelink('Message','Task ITI blank');
+                Eyelink('Message','ITI blank');
             end
-            data.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
+            taskdata.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
             Screen(theWindow,'FillRect',bgcolor, window_rect);
             Screen('Flip', theWindow);
-            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2}+rT+ts{ts_i}{3});
-        end
-
+            waitsec_fromstarttime(taskdata.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2}+rT+ts{ts_i}{3});
+            
+            
         % Concentration Qustion
-        if ts{ts_i}{4} ~=0   % if 4rd column of ts is not 0, ask concentration for 9(cqT)+3s
+        elseif ts_i == 20   % 20th trial, ask concentration for 8(cqT)+3s
             if USE_EYELINK
-                Eyelink('Message','Task Concent present');
+                Eyelink('Message','Concentration present');
             end
-            data.dat{ts_i}.concent_starttime = GetSecs;  % rating start timestamp
-            [data.dat{ts_i}.rating_concent, data.dat{ts_i}.rating_concent_time, ...
-                data.dat{ts_i}.rating_trajectory] = concent_rating(data.dat{ts_i}.concent_starttime); % sub-function
-            
+            taskdata.dat{ts_i}.concent_starttime = GetSecs;  % rating start timestamp
+            [taskdata.dat{ts_i}.concentration, taskdata.dat{ts_i}.concent_time, ...
+                taskdata.dat{ts_i}.concent_trajectory] = concent_rating(taskdata.dat{ts_i}.concent_starttime); % sub-function
             
             % Blank for ITI
             if USE_EYELINK
-                Eyelink('Message','Task ITI blank');
+                Eyelink('Message','ITI blank');
             end
-            data.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
+            taskdata.dat{ts_i}.iti_starttime = GetSecs;    % ITI start timestamp
             Screen(theWindow,'FillRect',bgcolor, window_rect);
             Screen('Flip', theWindow);
             
-            waitsec_fromstarttime(data.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2}+cqT+3+ts{ts_i}{4});
+            waitsec_fromstarttime(taskdata.dat{ts_i}.trial_starttime, wordT+ts{ts_i}{2}+cqT+ts{ts_i}{3});
+            
+            
+        % The last question    
+        elseif ts_i == 40
+            if USE_EYELINK
+                Eyelink('Message','Final Rating');
+            end
+            taskdata.dat{ts_i}.emotion_starttime = GetSecs;  % rating start timestamp
+            [taskdata.dat{ts_i}.emotion_word, taskdata.dat{ts_i}.emotion_time, ...
+             taskdata.dat{ts_i}.emotion_trajectory] = emotion_rating(taskdata.dat{ts_i}.emotion_starttime); % sub-function
+
+            if USE_EYELINK
+                Eyelink('Message','Final Concentration');
+            end
+            taskdata.dat{ts_i}.concent_starttime = GetSecs;  % rating start timestamp
+            [taskdata.dat{ts_i}.concentration, taskdata.dat{ts_i}.concent_time, ...
+                taskdata.dat{ts_i}.concent_trajectory] = concent_rating(taskdata.dat{ts_i}.concent_starttime); % sub-function
+
         end
               
         % save data every even trial
         if mod(ts_i, 2) == 0 
-            save(data.taskfile, 'data', '-append'); % 'append' overwrite with adding new columns to 'data'
+            save(taskdata.taskfile, 'taskdata', '-append'); % 'append' overwrite with adding new columns to 'data'
         end
         
     end
@@ -357,12 +349,12 @@ try
         eyelink_main(edfFile, 'Shutdown');
     end
     if USE_BIOPAC
-        rest.dat{n}.biopac_endtime = GetSecs; % biopac timestamp
+        taskdata.biopac_endtime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(rest.dat{n}.biopac_endtime, 1);
+        waitsec_fromstarttime(taskdata.biopac_endtime, 1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
-    save(data.taskfile, 'data', '-append');
+    save(taskdata.taskfile, 'taskdata', '-append');
     
     WaitSecs(2);
 
@@ -427,8 +419,8 @@ Screen('TextSize', theWindow, fontsize(2));
 
 interval = 150;  % between two words
 % coordinates of the words 
-x(1) = W/2 - interval/2 - response_W(1);
-x(2) = W/2 + interval/2;
+x(1) = W/2 - interval - response_W(1) - response_W(2)/2;
+x(2) = W/2 - response_W(2)/2;
 
 y(1) = H/2 - response_H(1);
 y(2) = H/2 - response_H(2);
@@ -436,7 +428,7 @@ y(2) = H/2 - response_H(2);
 Screen(theWindow,'FillRect',bgcolor, window_rect);
 
 Screen('TextSize', theWindow, fontsize(1)); % previous word, fontsize = 45
-DrawFormattedText(theWindow, double(words{1}), x(1), y(1), white, [], [], [], 1.5);
+DrawFormattedText(theWindow, double(words{1}), x(1), y(1), white-80, [], [], [], 1.5);
 
 Screen('TextSize', theWindow, fontsize(2)); % present word, fontsize = 65
 DrawFormattedText(theWindow, double(words{2}), x(2), y(2), white, [], [], [], 1.5);
@@ -463,13 +455,15 @@ j = 0;
 while(1)
     j = j + 1;
     [x, y, button] = GetMouse(theWindow);
+    mx = x*1.1;
+    my = y*1.1;
     
     Screen(theWindow,'FillRect',bgcolor, window_rect);
     display_emotion_words(rand_z);
-    Screen('DrawDots', theWindow, [x y], 10, orange, [0, 0], 1); % draw orange dot on the cursor
+    Screen('DrawDots', theWindow, [mx my], 10, orange, [0, 0], 1); % draw orange dot on the cursor
     Screen('Flip', theWindow);
     
-    trajectory(j,:) = [x y];                  % trajectory of location of cursor
+    trajectory(j,:) = [mx my];                  % trajectory of location of cursor
     trajectory_time(j) = GetSecs - starttime; % trajectory of time
     
     if trajectory_time(end) >= rT  % maximum time of rating is 8s
@@ -479,11 +473,11 @@ while(1)
     if button(1)  % After click, the color of cursor dot changes.
         Screen(theWindow,'FillRect',bgcolor, window_rect);
         display_emotion_words(rand_z);
-        Screen('DrawDots', theWindow, [x;y], 10, red, [0 0], 1);
+        Screen('DrawDots', theWindow, [mx;my], 10, red, [0 0], 1);
         Screen('Flip', theWindow);
         
         % which word based on x y from mouse click
-        choice_idx = x > xy_rect(:,1) & x < xy_rect(:,3) & y > xy_rect(:,2) & y < xy_rect(:,4);
+        choice_idx = mx > xy_rect(:,1) & mx < xy_rect(:,3) & my > xy_rect(:,2) & my < xy_rect(:,4);
         if any(choice_idx)
             emotion_word = choice{choice_idx};
         else
@@ -544,13 +538,12 @@ global W H orange bgcolor window_rect theWindow red fontsize white cqT
 intro_prompt1 = double('지금, 나타나는 단어들에 대해 얼마나 주의를 잘 기울이고 계신가요?');
 intro_prompt2 = double('8초 안에 트랙볼을 움직여서 집중하고 있는 정도를 클릭해주세요.');
 title={'전혀 기울이지 않음','보통', '매우 집중하고 있음'};
-end_prompt = double('과제가 다시 이어집니다. 집중해주세요.');
 
-SetMouse(W/4, H/2);
+SetMouse(W/2, H/2);
 
 trajectory = [];
 trajectory_time = [];
-xy = [W/4 W*3/4 W/4 W/4 W*3/4 W*3/4;
+xy = [W/3 W*2/3 W/3 W/3 W*2/3 W*2/3;
       H/2 H/2 H/2-7 H/2+7 H/2-7 H/2+7];
 
 j = 0;
@@ -561,8 +554,8 @@ while(1)
     
     x = mx;
     y = H/2;
-    if x < W/4, x = W/4;
-    elseif x > W*3/4, x = W*3/4;
+    if x < W/3, x = W/3;
+    elseif x > W*2/3, x = W*2/3;
     end
     
     Screen('TextSize', theWindow, fontsize);
@@ -572,16 +565,16 @@ while(1)
     DrawFormattedText(theWindow, intro_prompt2,'center', H/4+40, white);
     % Draw scale letter
     DrawFormattedText(theWindow, double(title{1}),'center', 'center', white, ...
-                [],[],[],[],[], [xy(1,1)-15, xy(2,1), xy(1,1)+20, xy(2,1)+60]);
+                [],[],[],[],[], [xy(1,1)-70, xy(2,1), xy(1,1)+20, xy(2,1)+60]);
     DrawFormattedText(theWindow, double(title{2}),'center', 'center', white, ...
                 [],[],[],[],[], [W/2-15, xy(2,1), W/2+20, xy(2,1)+60]);
     DrawFormattedText(theWindow, double(title{3}),'center', 'center', white, ...
-                [],[],[],[],[], [xy(1,2)-15, xy(2,1), xy(1,2)+20, xy(2,1)+60]);
+                [],[],[],[],[], [xy(1,2)+45, xy(2,1), xy(1,2)+20, xy(2,1)+60]);
 
     Screen('DrawDots', theWindow, [x y], 10, orange, [0, 0], 1); % draw orange dot on the cursor
     Screen('Flip', theWindow);
         
-    trajectory(j,:) = [(x-xy(1,1))/(W/2)];    % trajectory of location of cursor
+    trajectory(j,:) = [(x-W/2)/(W/3)];    % trajectory of location of cursor
     trajectory_time(j) = GetSecs - starttime; % trajectory of time
 
     if trajectory_time(end) >= cqT  % maximum time of rating is 5s
@@ -595,24 +588,20 @@ while(1)
         DrawFormattedText(theWindow, intro_prompt2,'center', H/4+40, white);
         % Draw scale letter
         DrawFormattedText(theWindow, double(title{1}),'center', 'center', white, ...
-            [],[],[],[],[], [xy(1,1)-15, xy(2,1), xy(1,1)+20, xy(2,1)+60]);
+            [],[],[],[],[], [xy(1,1)-70, xy(2,1), xy(1,1)+20, xy(2,1)+60]);
         DrawFormattedText(theWindow, double(title{2}),'center', 'center', white, ...
             [],[],[],[],[], [W/2-15, xy(2,1), W/2+20, xy(2,1)+60]);
         DrawFormattedText(theWindow, double(title{3}),'center', 'center', white, ...
-            [],[],[],[],[], [xy(1,2)-15, xy(2,1), xy(1,2)+20, xy(2,1)+60]);
+            [],[],[],[],[], [xy(1,2)+45, xy(2,1), xy(1,2)+20, xy(2,1)+60]);
         Screen('DrawDots', theWindow, [x;y], 10, red, [0 0], 1);
         Screen('Flip', theWindow);
         
-        concentration = (x-xy(1,1))/(W/2);  % 0~1
+        concentration = (x-W/2)/(W/3);  % 0~1
         
         WaitSecs(0.3);   
         break;
     end    
 end
 
-Screen(theWindow, 'FillRect', bgcolor, window_rect);
-DrawFormattedText(theWindow, end_prompt, 'center', 'center', white);
-Screen('Flip', theWindow);
-WaitSecs(2.7);
 
 end

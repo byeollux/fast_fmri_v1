@@ -12,7 +12,7 @@ function [ts, isi_iti] = fast_fmri_generate_ts
 % ts{2} = {{'w1', 'w2'}, [6], [6]} -> rating, ISI = 6s, ITI = 6s
 %
 % ..
-%    Copyright (C) 2017  Wani Woo (Cocoan lab)
+%    Copyright (C) 2017  Cocoan lab
 % ..
 %%
 ts = cell(40,1);
@@ -25,39 +25,39 @@ dat_file = fullfile(savedir, ['b_responsedata_sub' SID '_sess' SessID '.mat']);
 
 load(dat_file); 
 
-intervals = repmat([3 4 6 9]', 1, 13); % one column vector becomes 4x13 matrix
-for i = 1:size(intervals,2) % size of column = 13, one column has info for 3 trials 
+intervals = repmat([3 4 6 9]', 1, 11); % one column vector becomes 4x11 matrix
+for i = 1:size(intervals,2) % size of column = 11 
     intervals(:,i) = intervals(randperm(4),i); % It's a great example of good using :
-    wh_rating(i) = randi(3); % which one of 3 trials will be rated?
 end
 
-isi_iti = zeros(40,3);  % make empty matrix
-
-for i = 1:13
-    idx = (3*(i-1)+1):(3*(i-1)+3);     % remainder after divided by 3 = 1,2,3
-    isi_iti(idx,1) = intervals(1:3,i); % fill the first column of 'isi_iti' with
-                                       % 1~3 rows, 'i'st column of 'intervals'
-    isi_iti(idx(wh_rating(i)),2) = intervals(4,i); % 4th row of 'intervals' will be a ITI
+for i = 1:4
+    wh_rating(i) = randi(7); % which one of 3 trials will be rated?
 end
 
-% concetration condition
-concent_iti = [4 6 9];
-concent_iti = concent_iti(:,randperm(3));
-for i = 1:numel(concent_iti)
-    if isi_iti(i*10,2)==0
-        isi_iti(i*10,3) = concent_iti(i);
-    elseif isi_iti(i*10+1,2)==0
-        isi_iti(i*10+1,3) = concent_iti(i);
-    else 
-        isi_iti(i*10+2,3) = concent_iti(i);
+wh_rating(1) = wh_rating(1)+3;
+wh_rating(2) = wh_rating(2)+10;
+wh_rating(3) = wh_rating(3)+23;
+wh_rating(4) = wh_rating(4)+30;
+
+
+isi_iti = zeros(44,2);  % make empty matrix
+
+isi_iti(:,1) = intervals(:);
+
+for i = 1:38
+    if i == wh_rating(1) || i == wh_rating(2) || i == wh_rating(3) || i == wh_rating(4)
+        isi_iti(i,2) = isi_iti(i+1,1);
+        isi_iti(i+1,:) = [];
+    elseif i == 20
+        isi_iti(i,2) = isi_iti(i+1,1);       
+        isi_iti(i+1,:) = [];
     end
-end    
+end
 
-
-isi_iti(40,1) = 15;  % After the final words, waiting 15s
+isi_iti(40,1) = 5;  % After the final words, waiting 5s
 
 for i = 1:(numel(response)-1)   % add two words series at the first and second columns of 'ts'
-    ts{i} = {{response{i}, response{i+1}}, isi_iti(i,1), isi_iti(i,2), isi_iti(i,3)};
+    ts{i} = {{response{i}, response{i+1}}, isi_iti(i,1), isi_iti(i,2)};
 end
 
 end

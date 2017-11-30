@@ -3,18 +3,15 @@
     fast_fmri_resting(0.01,'test');       % practice resting
     
     %% first time
-    fast_fmri_resting(6, 'biopac','eye');       % 6 min resting
     fast_fmri_word_generation('','practice');   % practice recording
+    fast_fmri_resting(6, 'biopac','eye');       % 6 min resting
 
-        %% repeat 4 times
+        %% WORD GENERATION + 2m RESTING
         fast_fmri_word_generation(seeds_rand{1},'biopac','eye');
         
-        fast_fmri_resting(2, 'biopac','eye')        % 2 min resting
-    
-        
-    %% Thinking and Rating
-    [ts, isi_iti] = fast_fmri_generate_ts;
-    fast_fmri_task_main(ts, isi_iti,'biopac','eye');
+        %% THINKING AND RATING
+        [ts, isi_iti] = fast_fmri_generate_ts;
+        fast_fmri_task_main(ts, isi_iti,'biopac','eye');
 
     
    

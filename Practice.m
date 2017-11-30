@@ -50,12 +50,12 @@ try
     intro_prompt{3} = double('떠오르지 않을 경우 전에 말한 내용을 반복해서 말할 수 있습니다.');
     intro_prompt{4} = double('말을 할 때에는 또박또박 크게 말씀해주세요');
     
-    exseed = {'초콜렛', '학교', '달력'};
-    rating_prompt = double('현재의 감정과 가장 가까운 감정을 8초 안에 신속하게 골라주세요.\n\n정서 단어를 기억하려고 해보세요.');
+    exseed = {'초콜렛', '학교'};
+    rating_prompt = double('정서 단어를 기억하려고 해보세요.');
     run_end_prompt = double('잘하셨습니다.');
     
     %% TASK   
-    for s = 1:3
+    for s = 1:2
         while (1)
             [~,~,keyCode] = KbCheck;
             [~, ~, button] = GetMouse(theWindow);
@@ -104,11 +104,6 @@ try
         DrawFormattedText(theWindow, rating_prompt,'center', textH, white);
         Screen('Flip', theWindow);
         WaitSecs(2);
-        
-        rng('shuffle');        % it prevents pseudo random number
-        rand_z = randperm(14); % random seed
-        display_emotion_words(rand_z);
-        WaitSecs(0.7);
         
         rng('shuffle');        % it prevents pseudo random number
         rand_z = randperm(14); % random seed
@@ -213,7 +208,7 @@ while(1)
     trajectory_time(j) = GetSecs - starttime; % trajectory of time
 
     
-    if trajectory_time(end) >= 8  % maximum time of rating is 8s
+    if trajectory_time(end) >= 10  % maximum time of rating is 8s
         button(1) = true;
     end
     

@@ -118,7 +118,7 @@ cqT = 8;        % duration for question of concentration
     [~, ~, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
     
     % add some task information
-    taskdata.version = 'FAST_fmri_task_v1_11-16-2017';
+    taskdata.version = 'FAST_fmri_task_v1_12-02-2017';
     taskdata.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     taskdata.subject = SID;
     taskdata.session = SessID;
@@ -247,7 +247,7 @@ try
     if USE_BIOPAC
         taskdata.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(taskdata.biopac_starttime, 1);
+        waitsec_fromstarttime(taskdata.biopac_starttime, 0.6);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
@@ -351,7 +351,7 @@ try
     if USE_BIOPAC
         taskdata.biopac_endtime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(taskdata.biopac_endtime, 1);
+        waitsec_fromstarttime(taskdata.biopac_endtime, 0.1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     save(taskdata.taskfile, 'taskdata', '-append');

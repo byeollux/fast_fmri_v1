@@ -101,7 +101,7 @@ if ~practice_mode % if not practice mode, save the data
         
     else  % First start condition, make new file
         % add some task information
-        survey.version = 'FAST_fmri_task_v1_11-16-2017';
+        survey.version = 'FAST_fmri_task_v1_12-02-2017';
         survey.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
         survey.subject = SID;
         survey.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sessnumber.mat']);

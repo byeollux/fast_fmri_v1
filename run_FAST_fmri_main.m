@@ -7,7 +7,7 @@
     fast_fmri_resting(6, 'biopac','eye');       % 6 min resting
 
         %% WORD GENERATION + 2m RESTING
-        fast_fmri_word_generation(seeds_rand{1},'biopac','eye');
+        fast_fmri_word_generation(seeds_rand,'biopac','eye');
         
         %% THINKING AND RATING
         [ts, isi_iti] = fast_fmri_generate_ts;

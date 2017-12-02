@@ -75,7 +75,8 @@ USE_EYELINK = false;
 USE_BIOPAC = false;
 savewav = false;
 savedir = fullfile(pwd, 'data');
-response_repeat = 2;
+response_repeat = 40;   % 40
+restingtime = 120;      % 120
 wgdata = [];
 
 addpath(genpath(pwd));
@@ -152,7 +153,7 @@ if ~practice_mode
     if exist(fname, 'file'), load(fname, 'wgdata'); end
     
     % add some task information
-    wgdata.version = 'FAST_fmri_wordgeneration_v1_11-30-2017';
+    wgdata.version = 'FAST_fmri_wordgeneration_v1_12-02-2017';
     wgdata.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     wgdata.subject = SID;
     wgdata.session = SessID;
@@ -162,10 +163,10 @@ if ~practice_mode
     wgdata.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
     wgdata.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
     wgdata.exp_starttime = datestr(clock, 0); % date-time: timestamp
-    wgdata.seed = seed; % date-time: timestamp
+    wgdata.seeds = seed;
     
     response = cell(41,1); % preallocate the cell structure
-    response{1} = wgdata.seed;
+    response{1} = seed{str2double(SessID)};
     
 
     wgdata.rest.rating = cell(3,7);
@@ -224,9 +225,9 @@ try
         '방금 쉬는 과제를 하는 동안 자연스럽게 떠올린 생각에 대한 질문입니다.\n\n그 생각이 어떤 상황이나 장면을 생생하게 떠올리게 했나요?',...
         '방금 쉬는 과제를 하는 동안 자연스럽게 떠올린 생각에 대한 질문입니다.\n\n그 생각이 안전 또는 위협을 의미하거나 느끼게 했나요?',...
         '방금 쉬는 과제를 하는 동안 자연스럽게 떠올린 생각에 대한 질문입니다.\n\n그 생각이 방금 연상한 단어와 관련된 생각이었나요?';
-        '부정', '전혀 나와\n관련이 없음', '과거', '전혀 생생하지 않음', '안전', '전혀 관련 없음';
+        '부정', '전혀 나와\n관련이 없음', '과거', '전혀 생생하지 않음', '위협', '전혀 관련 없음';
         '중립', '', '현재', '', '중립', '';
-        '긍정','나와 관련이\n매우 많음', '미래','매우 생생함','위협','매우 관련 있음'};
+        '긍정','나와 관련이\n매우 많음', '미래','매우 생생함','안전','매우 관련 있음'};
    
     ready_prompt = double('참가자가 준비되었으면, 이미징을 시작합니다 (s).');
     run_end_prompt = double('잘하셨습니다. 잠시 대기해 주세요.');
@@ -365,7 +366,7 @@ try
     if USE_BIOPAC
         wgdata.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(GetSecs, 1);
+        waitsec_fromstarttime(GetSecs, 0.8);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
@@ -399,7 +400,7 @@ try
         if response_n == 1
             Screen('FillRect', theWindow, bgcolor, window_rect);
             Screen('TextSize', theWindow, fontsize*2); % emphasize
-            DrawFormattedText(theWindow, double(seed),'center', textH, orange);
+            DrawFormattedText(theWindow, double(seed{str2double(SessID)}),'center', textH, orange);
             Screen('Flip', theWindow);
             waitsec_fromstarttime(wgdata.seedword_starttime, 2.5);
             if USE_EYELINK
@@ -443,6 +444,13 @@ try
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, resting_intro,'center', textH, white);
     Screen('Flip', theWindow);
+    
+    if USE_BIOPAC
+        BIOPAC_trigger(ljHandle, biopac_channel, 'on');
+        waitsec_fromstarttime(wgdata.biopac_endtime, 0.5);
+        BIOPAC_trigger(ljHandle, biopac_channel, 'off');
+    end
+   
     waitsec_fromstarttime(GetSecs, 5)
     
     %% RESTING
@@ -454,7 +462,7 @@ try
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
     DrawFormattedText(theWindow, '+','center', 'center', white);
     Screen('Flip', theWindow);
-    waitsec_fromstarttime(wgdata.rest.resting_starttime, 120);
+    waitsec_fromstarttime(wgdata.rest.resting_starttime, restingtime);
     wgdata.rest.resting_endtime = GetSecs;
     
     if USE_EYELINK
@@ -634,7 +642,7 @@ try
     DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
     Screen('Flip', theWindow);
     
-    wgdata.response{1} = seed;
+    wgdata.response{1} = seed{str2double(SessID)};
     save(wgdata.wordfile, 'wgdata');
     
     if USE_EYELINK
@@ -644,7 +652,7 @@ try
     if USE_BIOPAC
         wgdata.biopac_endtime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(wgdata.biopac_endtime, 1);
+        waitsec_fromstarttime(wgdata.biopac_endtime, 0.1);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     

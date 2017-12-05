@@ -76,7 +76,7 @@ USE_BIOPAC = false;
 savewav = false;
 savedir = fullfile(pwd, 'data');
 response_repeat = 40;   % 40
-restingtime = 120;      % 120
+restingtime = 120;      % 120sec
 wgdata = [];
 
 addpath(genpath(pwd));
@@ -170,8 +170,8 @@ if ~practice_mode
     
 
     wgdata.rest.rating = cell(3,7);
-    question_type = {'Valence','Self','Time','Vividness','Safe&Threat'};
-    for i = 1:5
+    question_type = {'Valence','Self','Time','Vividness','Safe&Threat','Wordrelevance'};
+    for i = 1:6
         wgdata.rest.rating{1,i} = question_type{i};
     end
     wgdata.rest.rating{3,7} = 'RT';
@@ -371,7 +371,7 @@ try
     end
     
     %% SOUND RECORDING INIT
-    InitializePsychSound; % it's saved in run_FAST_fmri_main.m because it
+%     InitializePsychSound; % it's saved in run_FAST_fmri_main.m because it
     % should be run only once for the entire scan.
     % Maybe, with windows, we can have this here.
     
@@ -472,63 +472,9 @@ try
     
     %% RESTING QESTION
     rng('shuffle');
-    z = randperm(5);
+    z = [6, randperm(5)];
     
-    wgdata.rest.rating{1,6} = 'Association-related';
-    question_start = GetSecs;
-    SetMouse(W*3/8, H/2);
-    
-    while(1)
-        % Track Mouse coordinate
-        [mx, ~, button] = GetMouse(theWindow);
-        
-        x = mx;
-        y = H/2;
-        if x < W*3/8, x = W*3/8;
-        elseif x > W*5/8, x = W*5/8;
-        end
-        
-        Screen(theWindow, 'FillRect', bgcolor, window_rect);
-        Screen('DrawLines',theWindow, linexy2, 3, 255);
-        DrawFormattedText(theWindow, double(title{1,6}), 'center', tb, white, [], [], [], 1.5);
-        
-        DrawFormattedText(theWindow, double(title{2,6}),'center', 'center', white, [],[],[],[],[],...
-            [linexy2(1,1)-15, linexy2(2,1)+20, linexy2(1,1)+20, linexy2(2,1)+80]);
-        DrawFormattedText(theWindow, double(title{3,6}),'center', 'center', white, [],[],[],[],[],...
-            [W/2-15, linexy2(2,1)+20, W/2+20, linexy2(2,1)+80]);
-        DrawFormattedText(theWindow, double(title{4,6}),'center', 'center', white, [],[],[],[],[],...
-            [linexy2(1,2)-15, linexy2(2,1)+20, linexy2(1,2)+20, linexy2(2,1)+80]);
-        
-        Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
-        Screen('Flip', theWindow);
-        
-        if button(1)
-            wgdata.rest.rating{2,6} = (x-W*3/8)/(W/4);
-            wgdata.rest.rating{3,6} = GetSecs-question_start;
-            
-            Screen(theWindow, 'FillRect', bgcolor, window_rect);
-            Screen('DrawLines',theWindow, linexy2, 3, 255);
-            DrawFormattedText(theWindow, double(title{1,6}), 'center', tb, white, [], [], [], 1.5);
-            
-            DrawFormattedText(theWindow, double(title{2,6}),'center', 'center', white, [],[],[],[],[],...
-                [linexy2(1,1)-15, linexy2(2,1)+20, linexy2(1,1)+20, linexy2(2,1)+80]);
-            DrawFormattedText(theWindow, double(title{3,6}),'center', 'center', white, [],[],[],[],[],...
-                [W/2-15, linexy2(2,1)+20, W/2+20, linexy2(2,1)+80]);
-            DrawFormattedText(theWindow, double(title{4,6}),'center', 'center', white, [],[],[],[],[],...
-                [linexy2(1,2)-15, linexy2(2,1)+20, linexy2(1,2)+20, linexy2(2,1)+80]);
-            
-            Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
-            Screen('Flip', theWindow);
-            if USE_EYELINK
-                Eyelink('Message','Rest Question response');
-            end
-            WaitSecs(.3);
-            break;
-        end
-    end
-    
-    
-    for i = 1:(numel(title(1,:))-1)
+    for i = 1:numel(z)
         if mod(z(i),2) % odd number, valence, time, safe&threat
             question_start = GetSecs;
             SetMouse(W/2, H/2);

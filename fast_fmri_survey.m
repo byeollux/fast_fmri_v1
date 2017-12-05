@@ -24,6 +24,8 @@ psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
 addpath(genpath(psychtoolboxdir));
 addpath(genpath(pwd));
 
+practice_repeat= 3;
+
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -53,9 +55,9 @@ if testmode
 else
     window_rect1 = get(0, 'MonitorPositions'); % full screen
     window_rect = [ 0 0 window_rect1(3) window_rect1(4)];
-    %     if size(window_rect1,1)>1   % for Byeol's desk, when there are two moniter
-    %         window_rect = window_rect1(1,:);
-    %     end
+    if size(window_rect1,1)>1   % for Byeol's desk, when there are two moniter
+        window_rect = window_rect1(1,:);
+    end
 end
 
 W = window_rect(3); %width of screen
@@ -101,14 +103,14 @@ if ~practice_mode % if not practice mode, save the data
         
     else  % First start condition, make new file
         % add some task information
-        survey.version = 'FAST_fmri_task_v1_12-02-2017';
+        survey.version = 'FAST_fmri_task_v1_12-05-2017';
         survey.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
         survey.subject = SID;
         survey.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sessnumber.mat']);
         survey.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sessnumber.mat']);
         survey.taskfile = fullfile(savedir, ['c_taskdata_sub' SID '_sessnumber.mat']);
         survey.surveyfile = fullfile(savedir, ['d_surveydata_sub' SID '.mat']);
-        survey.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '_sessnumber.mat']);
+        survey.restingfile = fullfile(savedir, ['e_restingdata_sub' SID '.mat']);
         survey.dat_descript = {'survey.dat{target_i,seeds_i}';'6 Questions'; '1:Valence'; '2:Self-relevance'; '3:Time'; '4:Vividness'; '5:SafetyThreat'; '6:Bodymap'};
         survey.body_xy = [body_x body_y];     % coordinate inside of body
         survey.words = words;
@@ -190,12 +192,12 @@ if numel(start_line) == 1  % if restart, skip the practice
                 if x < rec(j,1)+(recsize(1)-barsize(1,j))/2, x = rec(j,1)+(recsize(1)-barsize(1,j))/2;
                 elseif x > rec(j,1)+(recsize(1)+barsize(1,j))/2, x = rec(j,1)+(recsize(1)+barsize(1,j))/2;
                 end
-                display_survey(z, seeds_i, target_i, pw,'practice1');
+                display_survey(z, seeds_i, 1, pw,'practice1');
                 Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
                 Screen('Flip', theWindow);
                 
                 if button(1)
-                    display_survey(z, seeds_i, target_i, pw,'practice1');
+                    display_survey(z, seeds_i, 1, pw,'practice1');
                     Screen('DrawDots', theWindow, [x,y], 9, red, [0 0], 1);
                     Screen('Flip', theWindow);
                     WaitSecs(.3);
@@ -218,7 +220,7 @@ if numel(start_line) == 1  % if restart, skip the practice
     else color = blue; color_code = 2;   end
     
     while(1)
-        display_survey(z, seeds_i, target_i, pw,'practice2');
+        display_survey(z, seeds_i, 1, pw,'practice2');
         
         % Track Mouse coordinate
         [x, y, button] = GetMouse(theWindow);

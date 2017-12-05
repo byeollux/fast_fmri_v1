@@ -52,7 +52,7 @@ end
 %% Get subject ID    
 fprintf('\n');
 SID = input('Subject ID (number)? ', 's');
-if ~survey 
+if ~(resting + survey)
     SessID = input('Session number? ', 's'); end
     
 %% Check if the data file exists
@@ -72,8 +72,7 @@ end
 if ~exist(savedir, 'dir')
     mkdir(savedir);
     whattodo = 1;
-else
-    
+else    
     if exist(fname, 'file')
         str = ['The Subject ' SID ' data file exists. Press a button for the following options'];
         disp(str);
@@ -107,14 +106,14 @@ elseif whattodo == 2 && survey      % is it right? 'survey' include task part.
                 seeds_i = j;
             end
         end
-        start_line(1) = seeds_i % the number of saved seed word
+        start_line(1) = seeds_i; % the number of saved seed word
 
         for i = 1:40
             if ~isempty(temp.dat{i,start_line(1)})
                 target_i = i; 
             end   % the final number of saved target word           
         end
-        start_line(2) = target_i
+        start_line(2) = target_i;
                     
     end
      

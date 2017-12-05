@@ -208,7 +208,7 @@ while(1)
     trajectory_time(j) = GetSecs - starttime; % trajectory of time
 
     
-    if trajectory_time(end) >= 10  % maximum time of rating is 8s
+    if trajectory_time(end) >= 10  % maximum time of rating is 10s
         button(1) = true;
     end
     

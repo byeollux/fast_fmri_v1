@@ -39,12 +39,49 @@ ylabel(question_type{1});
 xlabel(question_type{2});
 set(gca, 'xlim', [-0.05 1.1], 'ylim', [-1.1 1.1]);
 
+%% self-relevance순으로 나열
+[~, idself] = sort(ratingd(:,2));   %오름차순
+
+% 내림차순
+word2 = flipud(word(idself));
+ratingd2 = flipud(ratingd(idself,:));
+m = max(ratingd2(:,2));
+
+for i = 1:160
+    if ratingd2(i,2) == m
+        cut = i;
+    end
+end
+
+% for j = 1:cut
+%     if ratingd2(j,1) == median(ratingd2(1:cut,1))
+%         vmed = j;
+%     end
+% end
+
+for i = 1:cut
+    if ratingd2(i,1) == max(ratingd2(1:cut,1))
+        vmax = i;
+    end
+end
+
+for i = 1:cut
+    if ratingd2(i,1) == min(ratingd2(1:cut,1))
+        vmin = i;
+    end
+end
+
+word2(vmax,1)
+% word2(vmed,1)
+word2(vmin,1)
+
+
 %% line graph among the time
 figure('position',[1,1,1200, 600]);
 for i=1:5
     if mod(i,2)
         m = mean(ratingd(:,i));
-        s = std(ratingd(:,i));
+        correlation = std(ratingd(:,i));
         subplot(2,3,(i+1)/2);
         plot(x,ratingd(:,i),'-b',x,m*ones(1,160),'-r');
         title(question_type{i});
@@ -52,11 +89,11 @@ for i=1:5
         ax = gca;
         lxy = [(ax.XLim(2)-ax.XLim(1))*0.1+ax.XLim(1),ax.YLim(2)*0.8];
         text(lxy(1),lxy(2), sprintf('m = %g',m),'FontSize',8);
-        text(lxy(1),lxy(2)*0.8, sprintf('S.D = %g',s),'FontSize',8);
+        text(lxy(1),lxy(2)*0.8, sprintf('S.D = %g',correlation),'FontSize',8);
 
     else
         m = mean(ratingd(:,i));
-        s = std(ratingd(:,i));
+        correlation = std(ratingd(:,i));
         subplot(2,3,3+i/2);
         plot(x,ratingd(:,i),'-b',x,m*ones(1,160),'-r');
         title(question_type{i});
@@ -64,7 +101,7 @@ for i=1:5
         ax = gca;
         lxy = [(ax.XLim(2)-ax.XLim(1))*0.1+ax.XLim(1),ax.YLim(2)*0.8];
         text(lxy(1),lxy(2), sprintf('m = %g',m),'FontSize',8);
-        text(lxy(1),lxy(2)*0.9, sprintf('S.D = %g',s),'FontSize',8);
+        text(lxy(1),lxy(2)*0.9, sprintf('S.D = %g',correlation),'FontSize',8);
 
         
     end
@@ -75,7 +112,7 @@ figure('position',[1,1,1200, 600]);
 for i=1:5
     if mod(i,2)
         m = mean(ratingd(:,i));
-        s = std(ratingd(:,i));
+        correlation = std(ratingd(:,i));
         subplot(2,3,(i+1)/2);   
         histogram(ratingd(:,i),20,'FaceColor','b');
         title(question_type{i});
@@ -83,10 +120,10 @@ for i=1:5
         ax = gca;
         lxy = [(ax.XLim(2)-ax.XLim(1))*0.1+ax.XLim(1),ax.YLim(2)*0.8];
         text(lxy(1),lxy(2), sprintf('m = %g',m),'FontSize',8);
-        text(lxy(1),lxy(2)*0.9, sprintf('S.D = %g',s),'FontSize',8);
+        text(lxy(1),lxy(2)*0.9, sprintf('S.D = %g',correlation),'FontSize',8);
     else
         m = mean(ratingd(:,i));
-        s = std(ratingd(:,i));
+        correlation = std(ratingd(:,i));
         subplot(2,3,i/2+3 );
         histogram(ratingd(:,i),20,'FaceColor','b');
         title(question_type{i});
@@ -94,62 +131,43 @@ for i=1:5
         ax = gca;
         lxy = [(ax.XLim(2)-ax.XLim(1))*0.1+ax.XLim(1),ax.YLim(2)*0.8];
         text(lxy(1),lxy(2), sprintf('m = %g',m),'FontSize',8);
-        text(lxy(1),lxy(2)*0.9, sprintf('S.D = %g',s),'FontSize',8);
+        text(lxy(1),lxy(2)*0.9, sprintf('S.D = %g',correlation),'FontSize',8);
     end
 end
 
-%%
+%% scatter plot
 figure;
 scatter(ratingd(:,1),ratingd(:,5));
 ylabel(question_type{5});
 xlabel(question_type{1});
 
-corr(ratingd(:,1), ratingd(:,5))
-
+%% correlation
+correlation = cell(6,6);
+correlation{1,1}={'correlation'};
+for i=1:5
+    correlation{1,i+1} = question_type{i};
+    correlation{i+1,1} = question_type{i};
+    for j=1:5
+        correlation{i+1,j+1} = corr(ratingd(:,i),ratingd(:,j));
+    end
+end
+        
 
 %% Valence _ Self 2D
 figure;
 plot(ratingd(:,2), ratingd(:,1))
 
 
-%%
-[~, idself] = sort(ratingd(:,2));   %오름차순
 
-% 내림차순
-word2 = flipud(word(idself));
-ratingd2 = flipud(ratingd(idself,:));
-m = max(ratingd2(:,2));
+%% chanhoo request
 
-for k = 1:160
-    if ratingd2(k,2) == m
-        cut = k;
-    end
+for i = 1:159
+    ratingd(i+1,6) = abs(ratingd(i+1,1)-ratingd(i,1));
 end
 
-% for j = 1:cut
-%     if ratingd2(j,1) == median(ratingd2(1:cut,1))
-%         vmed = j;
-%     end
-% end
+figure;
+scatter(ratingd(:,6),ratingd(:,2));
+ylabel(question_type{2});
+xlabel('d valence');
 
-for j = 1:cut
-    if ratingd2(j,1) == max(ratingd2(1:cut,1))
-        vmax = j;
-    end
-end
-
-for j = 1:cut
-    if ratingd2(j,1) == min(ratingd2(1:cut,1))
-        vmin = j;
-    end
-end
-
-clear i;
-clear j;
-clear k;
-clear m;
-word2(vmax,1)
-% word2(vmed,1)
-word2(vmin,1)
-
-%%
+corr(ratingd(:,6),ratingd(:,2))

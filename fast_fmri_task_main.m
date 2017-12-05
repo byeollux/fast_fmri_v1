@@ -109,7 +109,7 @@ red = [189 0 38];
 blue = [0 85 169];
 orange = [255 164 0];
 
-wordT = .5;     % duration for showing target words
+wordT = 15;     % duration for showing target words
 rT = 10;         % duration for rating
 cqT = 8;        % duration for question of concentration
 
@@ -596,7 +596,7 @@ while(1)
         Screen('DrawDots', theWindow, [x;y], 10, red, [0 0], 1);
         Screen('Flip', theWindow);
         
-        concentration = (x-W/2)/(W/3);  % 0~1
+        concentration = (x-W/3)/(W/3);  % 0~1
         
         WaitSecs(0.3);   
         break;

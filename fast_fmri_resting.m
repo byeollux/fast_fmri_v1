@@ -71,7 +71,7 @@ for i = 1:length(varargin)
 end
 
 %% SETUP: DATA and Subject INFO
-[~, ~, SID, ~] = subjectinfo_check(savedir, 'resting'); % subfunction
+[~, ~, SID] = subjectinfo_check(savedir, 'resting'); % subfunction
 
 % First resting condition, make new file
 % add some task information
@@ -339,6 +339,7 @@ try
                 if button(1)
                     rest.rating{2,z(i)} = (x-W/2)/(W/4);
                     rest.rating{3,z(i)} = GetSecs-question_start;
+                    rrtt = GetSecs;
                     
                     Screen(theWindow, 'FillRect', bgcolor, window_rect);
                     Screen('DrawLines',theWindow, linexy1, 3, 255);
@@ -356,7 +357,8 @@ try
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
                     end
-                    WaitSecs(.3);
+                    waitsec_fromstarttime(rrtt, 0.3);
+                    rest.rating{4,z(i)} = GetSecs;
                     break;
                 end
             end
@@ -392,6 +394,7 @@ try
                 if button(1)
                     rest.rating{2,z(i)} = (x-W*3/8)/(W/4);
                     rest.rating{3,z(i)} = GetSecs-question_start;
+                    rrtt = GetSecs;
                     
                     Screen(theWindow, 'FillRect', bgcolor, window_rect);
                     Screen('DrawLines',theWindow, linexy2, 3, 255);
@@ -409,7 +412,8 @@ try
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
                     end
-                    WaitSecs(.3);
+                    waitsec_fromstarttime(rrtt, 0.3);
+                    rest.rating{4,z(i)} = GetSecs;
                     break;
                 end
             end

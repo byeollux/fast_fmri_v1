@@ -75,7 +75,7 @@ load(dat_file);
 load(save_file);
 
 %% Response_N
-% response_n = 1:numel(out.audiodata); % out.audiodata = 1x40
+% response_n = 1:numel(wgdata.audiodata); % wgdata.audiodata = 1x40
 response_n = [1:40];
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -108,7 +108,7 @@ for response_i = response_n   % in case of no-sound, 1:40
     while isempty(deblank(input_key))
         disp(['''' response{response_i} '''의 다음 단어는 무엇인가요? ']);
         if do_playsound
-            players = audioplayer(out.audiodata{response_i}', 44100);
+            players = audioplayer(wgdata.audiodata{response_i}', 44100);
             play(players);
             input_key = input('단어를 적고 엔터키를 눌러주세요. 다시 듣고 싶으시면 엔터키를 눌러주세요:  ', 's');
         else

@@ -48,7 +48,7 @@ try
     intro_prompt{1} = double('지금부터 말하기 과제를 시작하겠습니다.');
     intro_prompt{2} = double('2.5초마다 벨이 울리면 바로 떠오르는 단어나 문장을 말씀해주세요.');
     intro_prompt{3} = double('떠오르지 않을 경우 전에 말한 내용을 반복해서 말할 수 있습니다.');
-    intro_prompt{4} = double('말을 할 때에는 또박또박 크게 말씀해주세요');
+    intro_prompt{4} = double('시작하려면 클릭해주세요.');
     
     exseed = {'초콜렛', '학교'};
     rating_prompt = double('정서 단어를 기억하려고 해보세요.');
@@ -115,7 +115,7 @@ try
         Screen('TextSize', theWindow, fontsize); 
         DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
         Screen('Flip', theWindow);
-        KbWait;
+        WaitSecs(3);
         Screen('CloseAll');
 
 catch err

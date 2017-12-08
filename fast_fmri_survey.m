@@ -150,7 +150,7 @@ ready_prompt{8} = double('약 2시간 정도 예상되는 설문이므로 마지막까지 집중해서 
 ready_prompt{9} = double('\n시작하려면 스페이스를 눌러주세요.');
 
 
-practice_end_prompt = double('잘하셨습니다. 질문이 있으신가요?\n\n press tab');
+practice_end_prompt = double('잘하셨습니다. 질문이 있으신가요?\n\n시작할 준비가 되셨으면 스페이스를 눌러주세요.');
 run_end_prompt = double('잘하셨습니다. 잠시 휴식을 가지셔도 됩니다.\n다음 세트를 시작할 준비가 되면 스페이스를 눌러주세요.');
 
 exp_end_prompt = double('설문을 모두 마치셨습니다. 감사합니다!');
@@ -266,7 +266,7 @@ if numel(start_line) == 1  % if restart, skip the practice
     % Practice End prompt
     while (1)
         [~,~,keyCode] = KbCheck;
-        if keyCode(KbName('tab'))==1
+        if keyCode(KbName('space'))==1
             break;
         elseif keyCode(KbName('q'))==1
             abort_experiment('manual');

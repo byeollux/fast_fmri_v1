@@ -407,7 +407,7 @@ try
                     DrawFormattedText(theWindow, double(title{4,z(i)}),'center', 'center', white, [],[],[],[],[],...
                         [linexy2(1,2)-15, linexy2(2,1)+20, linexy2(1,2)+20, linexy2(2,1)+80]);
                     
-                    Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
+                    Screen('DrawDots', theWindow, [x;y], 9, red, [0 0], 1);
                     Screen('Flip', theWindow);
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');

@@ -211,7 +211,7 @@ try
     practice_prompt{2} = double('단어가 보이고 벨이 울리면 말씀해주세요. 2번 반복됩니다.');
     practice_prompt{3} = double('\n준비되시면 시작하겠습니다.');
     
-    intro_prompt{1} = double('지금부터 말하기 과제를 시작하겠습니다.');
+    intro_prompt{1} = double('지금부터 자유연상 과제를 시작하겠습니다.');
     intro_prompt{2} = double('2.5초마다 벨이 울리면 바로 떠오르는 단어나 문장을 말씀해주세요.');
     intro_prompt{3} = double('떠오르지 않을 경우 전에 말한 내용을 반복해서 말할 수 있습니다.');
     intro_prompt{4} = double('말을 할 때에는 또박또박 크게 말씀해주세요');
@@ -371,7 +371,7 @@ try
     end
     
     %% SOUND RECORDING INIT
-%     InitializePsychSound; % it's saved in run_FAST_fmri_main.m because it
+    InitializePsychSound; % it's saved in run_FAST_fmri_main.m because it
     % should be run only once for the entire scan.
     % Maybe, with windows, we can have this here.
     
@@ -437,8 +437,10 @@ try
         if USE_EYELINK
             Eyelink('Message','WG Trial end');
         end
-        
     end
+    
+    wgdata.response{1} = seed{str2double(SessID)};
+    save(wgdata.wordfile, 'wgdata');
     
     %% DISPLAY RESTING START MESSAGE
     Screen(theWindow, 'FillRect', bgcolor, window_rect);
@@ -569,7 +571,7 @@ try
                     DrawFormattedText(theWindow, double(title{4,z(i)}),'center', 'center', white, [],[],[],[],[],...
                         [linexy2(1,2)-15, linexy2(2,1)+20, linexy2(1,2)+20, linexy2(2,1)+80]);
                     
-                    Screen('DrawDots', theWindow, [x;y], 9, orange, [0 0], 1);
+                    Screen('DrawDots', theWindow, [x;y], 9, red, [0 0], 1);
                     Screen('Flip', theWindow);
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
@@ -588,8 +590,7 @@ try
     DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
     Screen('Flip', theWindow);
     
-    wgdata.response{1} = seed{str2double(SessID)};
-    save(wgdata.wordfile, 'wgdata');
+    save(wgdata.wordfile, 'wgdata','-append');
     
     if USE_EYELINK
         Eyelink('Message','WG+Resting Run end');

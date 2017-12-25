@@ -1,18 +1,18 @@
 function survey = fast_fmri_survey(words, varargin)
 %
-%   out.dat{target_i,seeds_i}{barsize(5,j)}.tracjectory
-%   out.dat{target_i,seeds_i}{barsize(5,j)}.time
-%   out.dat{target_i,seeds_i}{barsize(5,j)}.rating
+%   survey.dat{target_i,seeds_i}{barsize(5,j)}.tracjectory
+%   survey.dat{target_i,seeds_i}{barsize(5,j)}.time
+%   survey.dat{target_i,seeds_i}{barsize(5,j)}.rating
 %                               for bodymap, rating_red & rating_blue
-%   out.dat{target_i,seeds_i}{barsize(5,j)}.RT
+%   survey.dat{target_i,seeds_i}{barsize(5,j)}.RT
 %
 %       for example,
-%   out.dat{target_i,seeds_i}{1}.tracjectory = 'Valence'
-%   out.dat{target_i,seeds_i}{2}.tracjectory = 'Self-relevance'
-%   out.dat{target_i,seeds_i}{3}.tracjectory = 'Time'
-%   out.dat{target_i,seeds_i}{4}.tracjectory = 'Vividness'
-%   out.dat{target_i,seeds_i}{5}.tracjectory = 'SafetyThreat'
-%   out.dat{target_i,seeds_i}{6}.tracjectory = 'Bodymap'
+%   survey.dat{target_i,seeds_i}{1}.tracjectory = 'Valence'
+%   survey.dat{target_i,seeds_i}{2}.tracjectory = 'Self-relevance'
+%   survey.dat{target_i,seeds_i}{3}.tracjectory = 'Time'
+%   survey.dat{target_i,seeds_i}{4}.tracjectory = 'Vividness'
+%   survey.dat{target_i,seeds_i}{5}.tracjectory = 'SafetyThreat'
+%   survey.dat{target_i,seeds_i}{6}.tracjectory = 'Bodymap'
 %
 %
 %% default setting
@@ -23,8 +23,6 @@ psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
 
 addpath(genpath(psychtoolboxdir));
 addpath(genpath(pwd));
-
-practice_repeat= 3;
 
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
@@ -470,8 +468,10 @@ for seeds_i = start_line(1):numel(words(1,:)) % loop through the seed words
             DrawFormattedText(theWindow, run_end_prompt, 'center', textH, white);
             Screen('Flip', theWindow);
         end
+    elseif seeds_i == numel(words(1,:))
+        survey.exp_endtime = datestr(clock, 0);
+        save(survey.surveyfile, 'survey', '-append') 
     end
-    
     WaitSecs(1.0);
     
 end  % end of all seed words

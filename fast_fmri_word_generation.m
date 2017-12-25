@@ -366,7 +366,7 @@ try
     if USE_BIOPAC
         wgdata.biopac_starttime = GetSecs; % biopac timestamp
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(GetSecs, 0.8);
+        waitsec_fromstarttime(wgdata.biopac_starttime, 0.8);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
     
@@ -449,7 +449,7 @@ try
     
     if USE_BIOPAC
         BIOPAC_trigger(ljHandle, biopac_channel, 'on');
-        waitsec_fromstarttime(wgdata.biopac_endtime, 0.5);
+        waitsec_fromstarttime(GetSecs, 0.5);
         BIOPAC_trigger(ljHandle, biopac_channel, 'off');
     end
    

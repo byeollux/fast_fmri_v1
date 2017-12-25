@@ -445,7 +445,7 @@ rng('shuffle');        % it prevents pseudo random number
 rand_z = randperm(14); % random seed
 [choice, xy_rect] = display_emotion_words(rand_z);
 
-SetMouse(W/2, H/2);
+SetMouse(880, 500);
 
 trajectory = [];
 trajectory_time = [];

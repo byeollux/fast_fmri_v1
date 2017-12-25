@@ -11,7 +11,7 @@
         
         %% THINKING AND RATING
         [ts, isi_iti] = fast_fmri_generate_ts;
-        fast_fmri_task_main(ts, isi_iti,'biopac','eye');
+        fast_fmri_task_main(ts, isi_iti,'test');
 
     
    

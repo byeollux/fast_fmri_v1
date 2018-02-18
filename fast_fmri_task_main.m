@@ -55,7 +55,7 @@ savedir = fullfile(pwd, 'data');
 scriptdir = pwd; % modify this
 
 addpath(genpath(pwd));
-
+rng('shuffle');
 %% parsing varargin
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -186,7 +186,7 @@ try
             Screen('Flip', theWindow);
         end
         WaitSecs(.1)
-        emotion_rating(GetSecs); % sub-function: 8s
+        emotion_rating(GetSecs); % sub-function: 10s
         
         WaitSecs(1);
     end
@@ -446,6 +446,7 @@ rand_z = randperm(14); % random seed
 [choice, xy_rect] = display_emotion_words(rand_z);
 
 SetMouse(880, 500);
+% SetMouse(W/2, H/2);
 
 trajectory = [];
 trajectory_time = [];
@@ -602,6 +603,4 @@ while(1)
         break;
     end    
 end
-
-
 end

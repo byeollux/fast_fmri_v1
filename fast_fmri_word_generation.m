@@ -80,7 +80,6 @@ restingtime = 120;      % 120sec
 wgdata = [];
 
 addpath(genpath(pwd));
-
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -506,6 +505,7 @@ try
                 if button(1)
                     wgdata.rest.rating{2,z(i)} = (x-W/2)/(W/4);
                     wgdata.rest.rating{3,z(i)} = GetSecs-question_start;
+                    rrtt = GetSecs;
                     
                     Screen(theWindow, 'FillRect', bgcolor, window_rect);
                     Screen('DrawLines',theWindow, linexy1, 3, 255);
@@ -523,7 +523,7 @@ try
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
                     end
-                    WaitSecs(.3);
+                    waitsec_fromstarttime(rrtt, 0.5);
                     break;
                 end
             end
@@ -559,6 +559,7 @@ try
                 if button(1)
                     wgdata.rest.rating{2,z(i)} = (x-W*3/8)/(W/4);
                     wgdata.rest.rating{3,z(i)} = GetSecs-question_start;
+                    rrtt = GetSecs;
                     
                     Screen(theWindow, 'FillRect', bgcolor, window_rect);
                     Screen('DrawLines',theWindow, linexy2, 3, 255);
@@ -576,7 +577,7 @@ try
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
                     end
-                    WaitSecs(.3);
+                    waitsec_fromstarttime(rrtt, 0.5);
                     break;
                 end
             end

@@ -51,7 +51,7 @@ savedir = fullfile(pwd, 'data');
 rest = [];
 
 addpath(genpath(pwd));
-
+rng('shuffle');
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -357,7 +357,7 @@ try
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
                     end
-                    waitsec_fromstarttime(rrtt, 0.3);
+                    waitsec_fromstarttime(rrtt, 0.5);
                     rest.rating{4,z(i)} = GetSecs;
                     break;
                 end
@@ -412,7 +412,7 @@ try
                     if USE_EYELINK
                         Eyelink('Message','Rest Question response');
                     end
-                    waitsec_fromstarttime(rrtt, 0.3);
+                    waitsec_fromstarttime(rrtt, 0.5);
                     rest.rating{4,z(i)} = GetSecs;
                     break;
                 end

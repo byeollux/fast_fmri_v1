@@ -23,7 +23,7 @@ psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
 
 addpath(genpath(psychtoolboxdir));
 addpath(genpath(pwd));
-
+rng('shuffle');
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})

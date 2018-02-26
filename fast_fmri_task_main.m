@@ -52,10 +52,8 @@ testmode = false;
 USE_EYELINK = false;
 USE_BIOPAC = false;
 savedir = fullfile(pwd, 'data');
-scriptdir = pwd; % modify this
 
 addpath(genpath(pwd));
-rng('shuffle');
 %% parsing varargin
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -101,7 +99,7 @@ W = window_rect(3); %width of screen
 H = window_rect(4); %height of screen
 textH = H/2.3;
 
-font = 'NanumGothic';
+% font = 'NanumGothic';
 fontsize = 30;
 
 white = 255;
@@ -118,7 +116,7 @@ cqT = 8;        % duration for question of concentration
     [~, ~, SID, SessID] = subjectinfo_check(savedir, 'task'); % subfunction
     
     % add some task information
-    taskdata.version = 'FAST_fmri_task_v1_12-02-2017';
+    taskdata.version = 'FAST_fmri_task_v1_02-19-2018';
     taskdata.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     taskdata.subject = SID;
     taskdata.session = SessID;
@@ -136,7 +134,7 @@ cqT = 8;        % duration for question of concentration
     %% START: Screen
     theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
     Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
-    Screen('TextFont', theWindow, font);
+%     Screen('TextFont', theWindow, font);
     Screen('TextSize', theWindow, fontsize);
     HideCursor;
     
@@ -407,14 +405,14 @@ end
 
 function display_target_word(words)
 
-global W H white theWindow window_rect bgcolor
+global W H white theWindow window_rect bgcolor fontsize
 
-fontsize = [45 65];
+fontsz = [fontsize*45/30 fontsize*65/30];
 % Calcurate the W & H of two generated words
-Screen('TextSize', theWindow, fontsize(1));
+Screen('TextSize', theWindow, fontsz(1));
 [response_W(1), response_H(1)] = Screen(theWindow, 'DrawText', double(words{1}), 0, 0);
 
-Screen('TextSize', theWindow, fontsize(2));
+Screen('TextSize', theWindow, fontsz(2));
 [response_W(2), response_H(2)] = Screen(theWindow, 'DrawText', double(words{2}), 0, 0);
 
 interval = 150;  % between two words
@@ -427,10 +425,10 @@ y(2) = H/2 - response_H(2);
 
 Screen(theWindow,'FillRect',bgcolor, window_rect);
 
-Screen('TextSize', theWindow, fontsize(1)); % previous word, fontsize = 45
+Screen('TextSize', theWindow, fontsz(1)); % previous word, fontsize = 45
 DrawFormattedText(theWindow, double(words{1}), x(1), y(1), white-80, [], [], [], 1.5);
 
-Screen('TextSize', theWindow, fontsize(2)); % present word, fontsize = 65
+Screen('TextSize', theWindow, fontsz(2)); % present word, fontsize = 65
 DrawFormattedText(theWindow, double(words{2}), x(2), y(2), white, [], [], [], 1.5);
 
 Screen('Flip', theWindow);

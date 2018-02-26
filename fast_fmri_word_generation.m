@@ -133,7 +133,7 @@ H = window_rect(4); % height of screen
 textH = H/2.3;
 tb = H/5;
 
-font = 'NanumGothic';
+% font = 'NanumGothic';
 fontsize = 30;
 
 white = 255;
@@ -152,7 +152,7 @@ if ~practice_mode
     if exist(fname, 'file'), load(fname, 'wgdata'); end
     
     % add some task information
-    wgdata.version = 'FAST_fmri_wordgeneration_v1_12-02-2017';
+    wgdata.version = 'FAST_fmri_wordgeneration_v1_02-19-2018';
     wgdata.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
     wgdata.subject = SID;
     wgdata.session = SessID;
@@ -183,7 +183,7 @@ end
 %% START: Screen
 theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
 Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
-Screen('TextFont', theWindow, font);
+% Screen('TextFont', theWindow, font);
 Screen('TextSize', theWindow, fontsize);
 HideCursor;
 
@@ -214,7 +214,7 @@ try
     intro_prompt{2} = double('2.5초마다 벨이 울리면 바로 떠오르는 단어나 문장을 말씀해주세요.');
     intro_prompt{3} = double('떠오르지 않을 경우 전에 말한 내용을 반복해서 말할 수 있습니다.');
     intro_prompt{4} = double('말을 할 때에는 또박또박 크게 말씀해주세요');
-    intro_prompt{7} = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n모두 준비되었으면, 스페이스바를 눌러주세요.');
+    intro_prompt{7} = double('실험자는 모든 것이 잘 준비되었는지 체크해주세요 (Biopac, Eyelink, 등등).\n\n모두 준비되었으면, 스페이스바를 눌러주세요.');
     
     resting_intro = double('이제 2분간 쉬는 동안의 뇌 활동을 찍는 과제를 하겠습니다.');
     
@@ -350,7 +350,7 @@ try
     Screen('Flip', theWindow);
     waitsec_fromstarttime(wgdata.runscan_starttime, 4);
     
-    % 4 seconds: Blank
+    % 6 seconds: Blank
     Screen(theWindow,'FillRect',bgcolor, window_rect);
     Screen('Flip', theWindow);
     

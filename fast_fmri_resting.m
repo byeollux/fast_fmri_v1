@@ -51,7 +51,6 @@ savedir = fullfile(pwd, 'data');
 rest = [];
 
 addpath(genpath(pwd));
-rng('shuffle');
 %% PARSING OUT OPTIONAL INPUT
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -75,7 +74,7 @@ end
 
 % First resting condition, make new file
 % add some task information
-rest.version = 'FAST_fmri_wordgeneration_v1_12-02-2017';
+rest.version = 'FAST_fmri_wordgeneration_v1_02-19-2017';
 rest.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
 rest.subject = SID;
 rest.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sessnumber.mat']);
@@ -121,7 +120,7 @@ H = window_rect(4); % height of screen
 textH = H/2.3;
 tb = H/5;
 
-font = 'NanumGothic';
+% font = 'NanumGothic';
 fontsize = 30;
 
 white = 255;
@@ -131,7 +130,7 @@ orange = [255 164 0];
 %% START: Screen
 theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
 Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
-Screen('TextFont', theWindow, font);
+% Screen('TextFont', theWindow, font);
 Screen('TextSize', theWindow, fontsize);
 HideCursor;
 

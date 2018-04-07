@@ -132,7 +132,7 @@ cqT = 8;        % duration for question of concentration
     save(taskdata.taskfile, 'taskdata');
     
     %% START: Screen
-    theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
+    theWindow = Screen('OpenWindow', window_num, bgcolor, window_rect); % start the screen
     Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
 %     Screen('TextFont', theWindow, font);
     Screen('TextSize', theWindow, fontsize);

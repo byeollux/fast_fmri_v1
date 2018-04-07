@@ -49,7 +49,7 @@ global fontsize window_rect lb tb bodymap recsize barsize rec; % rating scale
 bgcolor = 100;
 
 if testmode
-    window_rect = [0 0 1728 972]; % in the test mode, use a little smaller screen
+    window_rect = [0 0 1260 760]; % in the test mode, use a little smaller screen
 else
     window_rect1 = get(0, 'MonitorPositions'); % full screen
     window_rect = [ 0 0 window_rect1(3) window_rect1(4)];
@@ -122,6 +122,7 @@ end
 %% Survey start: =========================================================
 
 %% START: Screen
+Screen('Preference', 'SkipSyncTests', 1); 
 theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
 Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
 Screen('TextFont', theWindow, font);
@@ -156,7 +157,7 @@ exp_end_prompt = double('설문을 모두 마치셨습니다. 감사합니다!');
 %% PRACTICE
 if numel(start_line) == 1  % if restart, skip the practice
     % viewing the practice prompt until click.
-    pw = {'음악';'크리스마스'};
+    pw = {'카페';'커피'};
     seeds_i = 1;
     while (1)
         [~,~,keyCode] = KbCheck;

@@ -34,13 +34,13 @@ red = [158 1 66];
 orange = [255 164 0];
 
 
-    %% START: Screen
-    theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
-	Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
-    Screen('TextFont', theWindow, font);
-    Screen('TextSize', theWindow, fontsize);
-    HideCursor;
-    
+%% START: Screen
+theWindow = Screen('OpenWindow', 0, bgcolor, window_rect); % start the screen
+Screen('Preference','TextEncodingLocale','ko_KR.UTF-8');
+Screen('TextFont', theWindow, font);
+Screen('TextSize', theWindow, fontsize);
+HideCursor;
+
 %% TAST START: ===========================================================
 
 try
@@ -50,11 +50,11 @@ try
     intro_prompt{3} = double('떠오르지 않을 경우 전에 말한 내용을 반복해서 말할 수 있습니다.');
     intro_prompt{4} = double('시작하려면 클릭해주세요.');
     
-    exseed = {'초콜렛', '학교'};
+    exseed = {'봄바람', '수원'};
     rating_prompt = double('정서 단어를 기억하려고 해보세요.');
     run_end_prompt = double('잘하셨습니다.');
     
-    %% TASK   
+    %% TASK
     for s = 1:2
         while (1)
             [~,~,keyCode] = KbCheck;
@@ -71,7 +71,7 @@ try
             Screen('Flip', theWindow);
         end
         
-        % Showing seed word, beeping, recording X 3 times
+        % Showing seed word, beeping X 5 times
         for n = 1:5
             % seed word for 2.5s
             if n == 1
@@ -98,26 +98,26 @@ try
             Screen('Flip', theWindow);
             waitsec_fromstarttime(GetSecs, 1.5)
         end
-        
-        Screen('FillRect', theWindow, bgcolor, window_rect);
-        Screen('TextSize', theWindow, fontsize); 
-        DrawFormattedText(theWindow, rating_prompt,'center', textH, white);
-        Screen('Flip', theWindow);
-        WaitSecs(2);
-        
-        rng('shuffle');        % it prevents pseudo random number
-        rand_z = randperm(14); % random seed
-        display_emotion_words(rand_z);
-        WaitSecs(0.7);
-        
-    end    
-        Screen('FillRect', theWindow, bgcolor, window_rect);
-        Screen('TextSize', theWindow, fontsize); 
-        DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
-        Screen('Flip', theWindow);
-        WaitSecs(3);
-        Screen('CloseAll');
-
+    end
+    
+    Screen('FillRect', theWindow, bgcolor, window_rect);
+    Screen('TextSize', theWindow, fontsize);
+    DrawFormattedText(theWindow, rating_prompt,'center', textH, white);
+    Screen('Flip', theWindow);
+    WaitSecs(2);
+    
+    rng('shuffle');        % it prevents pseudo random number
+    rand_z = randperm(14); % random seed
+    display_emotion_words(rand_z);
+    WaitSecs(0.7);
+    
+    Screen('FillRect', theWindow, bgcolor, window_rect);
+    Screen('TextSize', theWindow, fontsize);
+    DrawFormattedText(theWindow, run_end_prompt,'center', textH, white);
+    Screen('Flip', theWindow);
+    WaitSecs(3);
+    Screen('CloseAll');
+    
 catch err
     % ERROR
     disp(err);
@@ -206,7 +206,7 @@ while(1)
     Screen('DrawDots', theWindow, [x y], 10, orange, [0, 0], 1); % draw orange dot on the cursor
     Screen('Flip', theWindow);
     trajectory_time(j) = GetSecs - starttime; % trajectory of time
-
+    
     
     if trajectory_time(end) >= 10  % maximum time of rating is 10s
         button(1) = true;

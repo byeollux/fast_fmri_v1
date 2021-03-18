@@ -19,7 +19,7 @@ function survey = fast_fmri_survey(words, varargin)
 testmode = false;
 practice_mode = false;
 savedir = fullfile(pwd, 'data');
-psychtoolboxdir = '/Users/byeoletoile/Documents/MATLAB/Psychtoolbox';
+psychtoolboxdir = '/Users/byeolkim/Documents/MATLAB/Psychtoolbox';
 
 addpath(genpath(psychtoolboxdir));
 addpath(genpath(pwd));
@@ -102,7 +102,7 @@ if ~practice_mode % if not practice mode, save the data
     else  % First start condition, make new file
         % add some task information
         survey.version = 'FAST_fmri_task_v1_12-05-2017';
-        survey.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
+        survey.github = 'https://github.com/byeolstellakim/fast_fmri_v1';
         survey.subject = SID;
         survey.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sessnumber.mat']);
         survey.responsefile = fullfile(savedir, ['b_responsedata_sub' SID '_sessnumber.mat']);

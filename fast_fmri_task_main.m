@@ -117,7 +117,7 @@ cqT = 8;        % duration for question of concentration
     
     % add some task information
     taskdata.version = 'FAST_fmri_task_v1_02-19-2018';
-    taskdata.github = 'https://github.com/ByeolEtoileKim/fast_fmri_v1';
+    taskdata.github = 'https://github.com/byeolstellakim/fast_fmri_v1';
     taskdata.subject = SID;
     taskdata.session = SessID;
     taskdata.wordfile = fullfile(savedir, ['a_worddata_sub' SID '_sess' SessID '.mat']);
